@@ -12,7 +12,8 @@
 + [数据库连接池](#datasource)
 + [spring jdbc](#jdbc)
 + [spring data jpa](#jpa)
-+ [mybatis(#mybatis)
++ [mybatis](#mybatis)
+
 ## <span id="web">web</span>
 
 #### 示例
