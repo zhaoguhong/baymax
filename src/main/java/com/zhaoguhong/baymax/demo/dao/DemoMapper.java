@@ -1,5 +1,6 @@
 package com.zhaoguhong.baymax.demo.dao;
 
+import com.zhaoguhong.baymax.common.Page;
 import com.zhaoguhong.baymax.demo.entity.Demo;
 import com.zhaoguhong.baymax.mybatis.MyMapper;
 import java.util.List;
@@ -20,5 +21,11 @@ public interface DemoMapper extends MyMapper<Demo>{
    * xml方式
    */
   List<Demo> getDemos();
+
+
+  /**
+   * xml方式,带分页
+   */
+  List<Demo> getDemos(Page<Demo> page);
 
 }

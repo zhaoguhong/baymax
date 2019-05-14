@@ -1,6 +1,5 @@
 # 基于springboot的web项目最佳实践
 
-
 该项目是基于springboot的web项目脚手架，对一些常用的框架进行整合，并进行了简单的二次封装
 
 项目名baymax取自动画片超能陆战队里面的大白，大白是一个医护充气机器人，希望这个项目你能像大白一样贴心，可以减少你的工作量
@@ -120,7 +119,7 @@ Druid是阿里巴巴数据库事业部出品，为监控而生的数据库连接
 
 maven 依赖
 
-```
+```xml
     <dependency>
       <groupId>com.alibaba</groupId>
       <artifactId>druid-spring-boot-starter</artifactId>
@@ -130,7 +129,7 @@ maven 依赖
 
 设置用户名密码
 
-```=
+```
 spring.datasource.druid.stat-view-servlet.login-username=admin
 spring.datasource.druid.stat-view-servlet.login-password=123456
 ```
@@ -149,7 +148,7 @@ spring对jdbc做了封装和抽象，最常用的是 `jdbcTemplate` 和 `NamedPa
 
 `jdbcDao`主要方法如下：
 
-```
+```java
 // 占位符
 find(String sql, Object... args)
 // 占位符，手动指定映射mapper
@@ -181,7 +180,7 @@ public interface DemoRepository extends BaseRepository<Demo> {
 ```
 `BaseRepository` 主要方法如下
 
-```
+```java
 // 新增，会对创建时间，创建人自动赋值
 void saveEntity(T entity)
 // 更新，会对更新时间，更新人自动赋值
@@ -202,7 +201,7 @@ T getById(Long id)
 
 `JpaDao`主要方法如下
 
-```
+```java
 // 占位符 例如：from Demo where id =?
 find(String sql, Object... args)
 // 命名参数
@@ -212,7 +211,7 @@ find(String sql, Map<String, ?> paramMap)
 ## <span id="mybatis">mybatis</span>
 maven 依赖
 
-```java
+```xml
     <dependency>
       <groupId>org.mybatis.spring.boot</groupId>
       <artifactId>mybatis-spring-boot-starter</artifactId>
@@ -243,7 +242,7 @@ public interface DemoMapper extends MyMapper<Demo>{
   List<Demo> getDemos();
 }
 ```
-需要注意，xml的namespace必须是mapper类的全限定名
+需要注意，xml的namespace必须是mapper类的全限定名，这样才可以建立dao接口与xml的关系
 
 ```xml
 <mapper namespace="com.zhaoguhong.baymax.demo.dao.DemoMapper">
@@ -257,7 +256,7 @@ mybatis 的单表增删改查写起来很啰嗦，[通用mapper](https://github.
 
 maven 依赖
 
-```java
+```xml
     <dependency>
       <groupId>tk.mybatis</groupId>
       <artifactId>mapper-spring-boot-starter</artifactId>
@@ -267,7 +266,7 @@ maven 依赖
 常用配置如下
 
 ```
-#mapper 多个接口时用逗号隔开
+# 通用mapper 多个接口时用逗号隔开
 mapper.mappers=com.zhaoguhong.baymax.mybatis.MyMapper
 mapper.not-empty=false
 mapper.identity=MYSQL
@@ -281,4 +280,70 @@ public class MybatisConfig {
 }
 ```
 `MyMapper` 接口 中封装了通用的方法，和`jpa`的`BaseRepository`类似，这里不再赘述
+
+#### 分页
+
+[pagehelper](https://github.com/pagehelper)是一个很好用的mybatis的分页插件
+
+maven 依赖
+
+```xml
+    <dependency>
+      <groupId>com.github.pagehelper</groupId>
+      <artifactId>pagehelper-spring-boot-starter</artifactId>
+      <version>1.2.3</version>
+    </dependency>
+```
+常用配置如下
+
+```
+#pagehelper
+#指定数据库类型
+pagehelper.helperDialect=mysql
+#分页合理化参数
+pagehelper.reasonable=true
+```
+使用分页
+
+```java   
+    PageHelper.startPage(1, 5);
+    List<Demo> demos = demoMapper.selectAll();
+```
+pagehelper 还有好多玩法，可以参考[这里](https://github.com/pagehelper/Mybatis-PageHelper/blob/master/wikis/zh/HowToUse.md) 
+
+#### 自定义分页
+pagehelper 虽然好用，但项目中有自己的分页对象，所以单独写一个拦截器，把他们整合到一起，为保证拦截器的顺序，在`spring ApplicationListener` 添加自定义的拦截器
+
+```java
+@Configuration
+// 设置mapper扫描的包
+@tk.mybatis.spring.annotation.MapperScan(basePackages = "com.zhaoguhong.baymax.*.dao")
+@Slf4j
+public class MybatisConfig implements ApplicationListener<ContextRefreshedEvent> {
+
+  @Autowired
+  private List<SqlSessionFactory> sqlSessionFactoryList;
+
+  /**
+   * 添加自定义的分页插件，pageHelper 的分页插件PageInterceptor是用@PostConstruct添加的，自定义的应该在其后面添加
+   * 真正执行时顺序是反过来，先执行MyPageInterceptor，再执行 PageInterceptor
+   */
+  @Override
+  public void onApplicationEvent(ContextRefreshedEvent event) {
+    MyPageInterceptor interceptor = new MyPageInterceptor();
+    for (SqlSessionFactory sqlSessionFactory : sqlSessionFactoryList) {
+      log.info(sqlSessionFactory.getConfiguration().getInterceptors().toString());
+      sqlSessionFactory.getConfiguration().addInterceptor(interceptor);
+      log.info("注册自定义分页插件成功");
+    }
+  }
+
+}
+```
+在使用时只需要传入自定义的分页对象即可
+
+```java
+    Page<Demo> page = new Page<>(1, 10);
+    demos = demoMapper.getDemos(page);
+```
 
