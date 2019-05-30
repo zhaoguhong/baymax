@@ -1,4 +1,4 @@
-package com.zhaoguhong.baymax.demo.dao;
+package com.zhaoguhong.baymax.demo.repository;
 
 import com.zhaoguhong.baymax.demo.entity.Demo;
 import com.zhaoguhong.baymax.jpa.BaseRepository;

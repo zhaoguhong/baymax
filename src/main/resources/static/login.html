@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+</head>
+<body>
+<h1>hhello,baymax,我是登录页</h1>
+<form action="/login" method="post">
+  <input type = "text" name="username"/>
+  <input type = "password" name="password"/>
+  <input type="submit" value="submit"/>
+  <span id = "msg">
+
+  </span>
+</form>
+</body>
+<script>
+  if(window.location.href.includes("?error")){
+    document.getElementById("msg").innerText="登录失败";
+  }
+</script>
+</html>

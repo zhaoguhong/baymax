@@ -1,8 +1,8 @@
 package com.zhaoguhong.baymax;
 
 import com.zhaoguhong.baymax.common.Page;
-import com.zhaoguhong.baymax.demo.dao.DemoRepository;
 import com.zhaoguhong.baymax.demo.entity.Demo;
+import com.zhaoguhong.baymax.demo.repository.DemoRepository;
 import com.zhaoguhong.baymax.jpa.JpaDao;
 import java.util.HashMap;
 import java.util.Map;

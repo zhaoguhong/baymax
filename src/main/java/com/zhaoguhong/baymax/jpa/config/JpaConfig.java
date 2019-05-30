@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  * @date 2019/5/13
  */
 @Configuration
-@EnableJpaRepositories(basePackages = {"com.zhaoguhong.baymax.**.dao"},repositoryFactoryBeanClass = BaseRepositoryFactoryBean.class)
+@EnableJpaRepositories(basePackages = {"com.zhaoguhong.baymax.**.repository"},repositoryFactoryBeanClass = BaseRepositoryFactoryBean.class)
 public class JpaConfig {
 
 }
