@@ -12,6 +12,8 @@
 + [spring jdbc](#jdbc)
 + [spring data jpa](#jpa)
 + [mybatis](#mybatis)
++ [spring security](#security)
++ [单点登录](#sso)
 
 ## <span id="web">web</span>
 
@@ -345,5 +347,164 @@ public class MybatisConfig implements ApplicationListener<ContextRefreshedEvent>
 ```java
     Page<Demo> page = new Page<>(1, 10);
     demos = demoMapper.getDemos(page);
+```
+
+## <span id="security">spring security</span>
+
+安全模块是项目中必不可少的一环，常用的安全框架有`shiro`和`spring security`，shiro相对轻量级，使用非常灵活，`spring security`相对功能更完善，而且可以和spring 无缝衔接。这里选取`spring security`做为安全框架
+
+maven 依赖
+
+```xml
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+```
+继承WebSecurityConfigurerAdapter类就可以进行配置了
+
+```java
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+  @Autowired
+  private SecurityProperties securityProperties;
+
+  @Autowired
+  private UserDetailsService userDetailsService;
+
+  @Override
+  protected void configure(HttpSecurity http) throws Exception {
+
+    http
+        .authorizeRequests()
+        // 设置可以匿名访问的url
+        .antMatchers(securityProperties.getAnonymousArray()).permitAll()
+        // 其它所有请求都要认证
+        .anyRequest().authenticated()
+        .and()
+        .formLogin()
+        // 自定义登录页
+        .loginPage(securityProperties.getLoginPage())
+        // 自定义登录请求路径
+        .loginProcessingUrl(securityProperties.getLoginProcessingUrl())
+        .permitAll()
+        .and()
+        .logout()
+        .permitAll();
+
+    // 禁用CSRF
+    http.csrf().disable();
+  }
+
+
+  @Override
+  public void configure(WebSecurity web) throws Exception {
+    String[] ignoringArray = securityProperties.getIgnoringArray();
+    // 忽略的资源，直接跳过spring security权限校验
+    if (ArrayUtils.isNotEmpty(ignoringArray)) {
+      web.ignoring().antMatchers(ignoringArray);
+    }
+  }
+
+  /**
+   *
+   * 声明密码加密方式
+   */
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
+
+  @Override
+  protected void configure(AuthenticationManagerBuilder auth)
+      throws Exception {
+    auth.userDetailsService(userDetailsService)
+        // 配置密码加密方式，也可以不指定，默认就是BCryptPasswordEncoder
+        .passwordEncoder(passwordEncoder());
+  }
+
+
+}
+```
+
+实现`UserDetailsService`接口，定义自己的`UserDetailsService`
+
+```java
+@Service
+public class UserDetailsServiceImpl implements UserDetailsService {
+
+  @Autowired
+  private UserRepository userRepository;
+
+  @Override
+  @Transactional
+  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    User user = userRepository.findByUsernameAndIsDeleted(username, SystemConstants.UN_DELETED);
+
+    if (user == null) {
+      throw new UsernameNotFoundException("username Not Found");
+    }
+    return user;
+  }
+
+}
+```
+配置项
+
+```
+#匿名访问的url,多个用逗号分隔
+security.anonymous=/test
+#忽略的资源,直接跳过spring security权限校验,一般是用做静态资源，多个用逗号分隔
+security.ignoring=/static/**,/images/**
+#自定义登录页面
+security.loginPage=/login.html
+#自定义登录请求路径
+security.loginProcessingUrl=/login
+```
+
+
+## <span id="sso">单点登录</span>
+单点登录系统（SSO，single sign-on）指的的，多个系统，共用一套用户体系，只要登录其中一个系统，访问其他系统不需要重新登录
+
+#### CAS
+CAS(Central Authentication Service)是耶鲁大学的一个开源项目，是比较流行的单独登录解决方案
+在CAS中，只负责登录的系统被称为服务端，其它所有系统被称为客户端
+
+##### 登录流程
+1. 用户访问客户端，客户端判断是否登录，如果没有登录，重定向到服务端去登录
+2. 服务端登录成功，带着ticket重定向到客户端
+3. 客户端拿着ticket发送请求到服务端换取用户信息，获取到后就表示登录成功
+
+##### 登出流程
+
+跳转到sso认证中心进行统一登出，cas 会通知所有客户端进行登出
+
+#### spring security 整合 cas
+
+maven 依赖
+
+```xml
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-cas</artifactId>
+    </dependency>
+```
+spring security 对 cas 做了很好的封装,在使用的过程中，只需要定义好对应的登录fifter和登出fifter即可，整合cas的代码我写在了`WebSecurityConfig`类中
+
+相关属性配置
+
+```
+#是否开启单点登录
+cas.enable = true
+#服务端地址
+cas.serverUrl=
+#客户端地址
+cas.clientUrl=
+#登录地址
+cas.loginUrl=${cas.serverUrl}/login
+#服务端登出地址
+cas.serverLogoutUrl=${cas.serverUrl}/logout
+#单点登录成功回调地址
+cas.clientCasUrl=${cas.clientUrl}/login/cas
 ```
 

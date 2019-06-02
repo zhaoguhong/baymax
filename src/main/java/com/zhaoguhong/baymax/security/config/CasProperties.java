@@ -28,10 +28,9 @@ public class CasProperties{
   private String clientUrl;
 
   /**
-   * 登录地址
+   * 服务端登录地址
    */
   private String loginUrl;
-
 
   /**
    * 服务端登出地址

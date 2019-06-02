@@ -32,7 +32,7 @@ public class CasSecurityConfig extends WebSecurityConfig {
     super.configure(http);
     if (casProperties.isEnable()) {
       http.authorizeRequests()
-          // 添加 cas 认知 fifter
+          // 添加 cas 认证 fifter
           .and().addFilterBefore(casAuthenticationFilter(), BasicAuthenticationFilter.class)
           // 添加 cas 登出 fifter
           .addFilterBefore(singleSignOutFilter(), CasAuthenticationFilter.class)
