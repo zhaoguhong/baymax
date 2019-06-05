@@ -10,7 +10,9 @@
 + [baseEntity](#baseEntity)
 + [数据库连接池](#datasource)
 + [spring jdbc](#jdbc)
-+ [spring data jpa](#jpa)
++ [jpa](#jpa)
++ [reids](#reids)
++ [mogodb](#mogodb)
 + [mybatis](#mybatis)
 + [spring security](#security)
 + [单点登录](#sso)
@@ -163,7 +165,9 @@ find(String sql, Map<String, ?> paramMap, RowMapper<T> rowMapper)
 queryForMap(String sql, Object... args)
 queryForMap(String sql, Map<String, ?> paramMap)
 ```
-## <span id="jpa">spring data jpa</span>
+## <span id="jpa">jpa</span>
+`jpa` 是 `java` 持久化的标准，`spring data jpa ` 使操作数据库变得更方便，需要说明的 `spring data jpa` 本身并不是jpa的实现，它默认使用的 `provider` 是 `hibernate`
+
 maven 依赖
 
 ```xml
@@ -172,7 +176,7 @@ maven 依赖
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
 ```
-spring data jpa 使操作数据库变得更方便，只需要声明接口即可，我把通用的方法抽取了出来了，封装了一个BaseRepository，使用时，直接继承该接口即可
+我把通用的方法抽取了出来了，封装了一个BaseRepository，使用时，直接继承该接口即可
 
 
 ```java
@@ -209,8 +213,87 @@ find(String sql, Object... args)
 // 命名参数
 find(String sql, Map<String, ?> paramMap)
 ```
+## <span id="redis">redis</span>
+Redis 是性能极佳key-value数据库，常用来做缓存
+java 中常用的客户端 `Jedis` 和 `Lettuce`, `spring data redis` 是基于 `Lettuce` 做的二次封装
 
+maven 依赖
+
+```xml
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+```
+为了在redis读起来更方便，更改序列化方式
+
+```java
+@Configuration
+public class RedisConfig {
+
+  /**
+   * 设置序列化方式
+   */
+  @Bean
+  public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
+    redisTemplate.setConnectionFactory(redisConnectionFactory);
+    redisTemplate.setKeySerializer(RedisSerializer.string());
+    redisTemplate.setValueSerializer(jackson2JsonRedisSerializer());
+    redisTemplate.setHashKeySerializer(RedisSerializer.string());
+    redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer());
+    return redisTemplate;
+  }
+
+  @Bean
+  public Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer() {
+    ObjectMapper om = new ObjectMapper();
+    om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+    // 将类名称序列化到json串中
+    om.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);
+    Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer =
+        new Jackson2JsonRedisSerializer<Object>(Object.class);
+    jackson2JsonRedisSerializer.setObjectMapper(om);
+    return jackson2JsonRedisSerializer;
+  }
+}
+```
+## <span id="mogodb">mogodb</span>
+MongoDB 是文档型数据库，在spring中使用也很方便
+
+maven 依赖
+
+```xml
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-mongodb</artifactId>
+    </dependency>
+```
+sprign data mogodb 提供了 MongoTemplate 对mogodb进行使用，我在该类的基础上又扩展了一下，可以自定义自己的方法
+
+```
+@Configuration
+public class MongoDbConfig {
+
+  /**
+   * 扩展自己的mogoTemplate
+   */
+  @Bean
+  public MyMongoTemplate mongoTemplate(MongoDbFactory mongoDbFactory,
+      MongoConverter converter) {
+    return new MyMongoTemplate(mongoDbFactory, converter);
+  }
+
+}
+```
+我扩展了一个分页的方法，可以根据自己的情况进行扩展
+
+```java
+// mogodb 分页
+public <T> Page<T> find(Page<T> page, Query query, Class<T> entityClass)
+```
 ## <span id="mybatis">mybatis</span>
+
 maven 依赖
 
 ```xml
@@ -220,6 +303,7 @@ maven 依赖
       <version>1.3.2</version>
     </dependency>
 ```
+
 常用配置如下
 
 ```
