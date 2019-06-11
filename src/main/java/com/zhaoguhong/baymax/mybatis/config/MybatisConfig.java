@@ -15,7 +15,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
  */
 @Configuration
 // 设置mapper扫描的包
-@tk.mybatis.spring.annotation.MapperScan(basePackages = "com.zhaoguhong.baymax.*.dao")
+@tk.mybatis.spring.annotation.MapperScan(basePackages = "com.zhaoguhong.baymax.**.dao")
 @Slf4j
 public class MybatisConfig implements ApplicationListener<ContextRefreshedEvent> {
 

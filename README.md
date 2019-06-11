@@ -5,23 +5,35 @@
 项目名baymax取自动画片超能陆战队里面的大白，大白是一个医护充气机器人，希望这个项目你能像大白一样贴心，可以减少你的工作量
 
 + [web](#web)
++ [单元测试](#test)
 + [actuator应用监控](#actuator)
 + [lombok](#lombok)
 + [baseEntity](#baseEntity)
++ [统一响应返回值](#result)
++ [异常](#exception)
++ [数据校验](#validation)
 + [数据库连接池](#datasource)
 + [spring jdbc](#jdbc)
 + [jpa](#jpa)
-+ [reids](#reids)
++ [redis](#redis)
 + [mogodb](#mogodb)
 + [mybatis](#mybatis)
 + [spring security](#security)
 + [单点登录](#sso)
 
 ## <span id="web">web</span>
+web模块是开发项目必不可少的一个模块
 
-#### 示例
-现在大部分项目都是前后端分离，因此推荐直接使用``@RestController``注解
-需要注意的是，**强烈不建议直接用RequstMapping注解并且不指定方法类型的写法**，推荐使用GetMaping或者PostMaping之类的注解
+maven 依赖
+
+```xml
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+```
+对于前后端分离项目，推荐直接使用``@RestController``注解
+需要注意的是，**强烈不建议直接用RequstMapping注解并且不指定方法类型的写法**，推荐使用`GetMaping`或者`PostMaping`之类的注解
 
 ```java
 @SpringBootApplication
@@ -37,11 +49,43 @@ public class BaymaxApplication {
     return "hello baymax";
   }
 }
-
 ```
-测试一下
+## <span id="test">单元测试</span>
+spring 对单元测试也提供了很好的支持
+
+maven 依赖
+
+```xml
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+```
+添加 `@RunWith(SpringRunner.class)` 和 `@SpringBootTest` 即可进行测试
 
 ```java
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class WebTest {
+}
+```
+对于`Controller`层的接口，可以直接用`MockMvc`进行测试
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class WebTest {
+
+  @Autowired
+  private WebApplicationContext context;
+  private MockMvc mvc;
+
+  @Before
+  public void setUp() throws Exception {
+    mvc = MockMvcBuilders.webAppContextSetup(context).build();
+  }
+
   @Test
   public void testValidation() throws Exception {
     mvc.perform(MockMvcRequestBuilders.get("/test"))
@@ -49,8 +93,10 @@ public class BaymaxApplication {
         .andDo(MockMvcResultHandlers.print())
         .andExpect(MockMvcResultMatchers.content().string("hello baymax"));
   }
+
+}
 ```
-## <span id="2">actuator应用监控</span>
+## <span id="actuator">actuator应用监控</span>
 actuator 是 spring 提供的应用监控功能，常用的配置项如下
 
 ```
@@ -78,7 +124,7 @@ public class Demo {
 
 `RequiredArgsConstructor` 会生成 会生成一个包含常量（final），和标识了@NotNull的变量 的构造方法
 
-## <span id="BaseEntity">BaseEntity</span>
+## <span id="baseEntity">baseEntity</span>
 把表中的基础字段抽离出来一个BaseEntity,所有的实体类都继承该类
 
 ```java
@@ -113,6 +159,178 @@ public abstract class BaseEntity implements Serializable {
   private Integer isDeleted;
 
 }
+```
+## <span id="result">统一响应返回值</span>
+前后端分离项目基本上都是ajax调用，所以封装一个统一的返回对象有利于前端统一处理
+
+```java
+/**
+ * 用于 ajax 请求的响应工具类
+ */
+@Data
+public class ResponseResult<T> {
+  // 未登录
+  public static final String UN_LOGIN_CODE = "401";
+  // 操作失败
+  public static final String ERROR_CODE = "400";
+  // 服务器内部执行错误
+  public static final String UNKNOWN_ERROR_CODE = "500";
+  // 操作成功
+  public static final String SUCCESS_CODE = "200";
+  // 响应信息
+  private String msg;
+  // 响应code
+  private String code;
+  // 操作成功，响应数据
+  private T data;
+
+  public ResponseResult(String code, String msg, T data) {
+    this.msg = msg;
+    this.code = code;
+    this.data = data;
+  }
+}
+```
+返回给前端的值用`ResponseResult`包装一下
+
+```java
+  /**
+   * 测试成功的 ResponseResult
+   */
+  @GetMapping("/successResult")
+  public ResponseResult<List<Demo>> test() {
+    List<Demo> demos = demoMapper.getDemos();
+    return ResponseResult.success(demos);
+  }
+
+  /**
+   * 测试失败的 ResponseResult
+   */
+  @GetMapping("/errorResult")
+  public ResponseResult<List<Demo>> demo() {
+    return ResponseResult.error("操作失败");
+  }
+
+```
+## <span id="exception">异常</span>
+#### 自定义异常体系
+为了方便异常处理，定义一套异常体系，BaymaxException 做为所有自定义异常的父类
+
+```java
+// 项目所有自定义异常的父类
+public class BaymaxException extends RuntimeException
+// 业务异常 该异常的信息会返回给用户
+public class BusinessException  extends BaymaxException
+// 用户未登录异常
+public class NoneLoginException  extends BaymaxException
+```
+#### 全局异常处理
+对所有的异常处理后再返回给前端
+
+```java
+@RestControllerAdvice
+public class GlobalControllerExceptionHandler {
+
+  /**
+   * 业务异常
+   */
+  @ExceptionHandler(value = {BusinessException.class})
+  public ResponseResult<?> handleBusinessException(BusinessException ex) {
+    String msg = ex.getMessage();
+    if (StringUtils.isBlank(msg)) {
+      msg = "操作失败";
+    }
+    return ResponseResult.error(msg);
+  }
+
+  /**
+   * 处理未登录异常
+   */
+  @ExceptionHandler(value = {NoneLoginException.class})
+  public ResponseResult<?> handleNoneLoginException(NoneLoginException ex) {
+    return ResponseResult.unLogin();
+  }
+
+  /**
+   * 处理未知的错误
+   */
+  @ExceptionHandler(value = {Exception.class})
+  public ResponseResult<Long> handleunknownException(Exception ex) {
+    ExceptionLog log = new ExceptionLog(new Date(), ExceptionUtils.getStackTrace(ex));
+    exceptionLogMapper.insert(log);
+    ResponseResult<Long> result = ResponseResult.unknownError("服务器异常:" + log.getId());
+    result.setData(log.getId());
+    return result;
+  }
+
+}
+```
+#### 异常持久化
+
+对于未知的异常，保存到数据库，方便后续排错
+
+```java
+  @Autowired
+  private ExceptionLogMapper exceptionLogMapper;
+  /**
+   * 处理未知的错误
+   */
+  @ExceptionHandler(value = {Exception.class})
+  public ResponseResult<Long> handleunknownException(Exception ex) {
+    ExceptionLog log = new ExceptionLog(new Date(), ExceptionUtils.getStackTrace(ex));
+    exceptionLogMapper.insert(log);
+    ResponseResult<Long> result = ResponseResult.unknownError("服务器异常:" + log.getId());
+    result.setData(log.getId());
+    return result;
+  }
+```
+## <span id="validation">数据校验</span>
+[JSR 303 ](https://www.ibm.com/developerworks/cn/java/j-lo-jsr303/)定义了一系列的 Bean Validation 规范，Hibernate Validator 是 Bean Validation 的实现，并进行了扩展
+
+spring boot 使用 也非常方便
+
+```java
+public class Demo extends BaseEntity{
+  @NotBlank(message = "用户名不允许为空")
+  private String userName;
+  @NotBlank
+  private String title;
+  @NotNull
+  private Integer age;
+}
+```
+参数前面添加@Valid注解即可
+
+```java
+  @PostMapping("/add")
+  public ResponseResult<String> add(@RequestBody @Valid Demo demo) {
+    demoMapper.insert(demo);
+    return ResponseResult.success();
+  }
+```
+对于校验结果可以每个方法单独处理，如果不处理，会抛出有异常，可以对校验的异常做全局处理
+
+在 `GlobalControllerExceptionHandler` 添加
+
+```java
+  /**
+   * 处理校验异常
+   */
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseResult<?> handleValidationException(MethodArgumentNotValidException ex) {
+    BindingResult result = ex.getBindingResult();
+    if (result.hasErrors()) {
+      StringJoiner joiner = new StringJoiner("，");
+      List<ObjectError> errors = result.getAllErrors();
+      errors.forEach(error -> {
+        FieldError fieldError = (FieldError) error;
+        joiner.add(fieldError.getField() + " " + error.getDefaultMessage());
+      });
+      return ResponseResult.error(joiner.toString());
+    } else {
+      return ResponseResult.error("操作失败");
+    }
+  }
 ```
 
 ## <span id="datasource">数据库连接池</span>
@@ -271,7 +489,7 @@ maven 依赖
 ```
 sprign data mogodb 提供了 MongoTemplate 对mogodb进行使用，我在该类的基础上又扩展了一下，可以自定义自己的方法
 
-```
+```java
 @Configuration
 public class MongoDbConfig {
 
@@ -286,7 +504,7 @@ public class MongoDbConfig {
 
 }
 ```
-我扩展了一个分页的方法，可以根据自己的情况进行扩展
+我扩展了一个分页的方法，可以根据自己的情况扩展其它方法
 
 ```java
 // mogodb 分页
