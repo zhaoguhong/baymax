@@ -19,6 +19,7 @@
 + [mogodb](#mogodb)
 + [mybatis](#mybatis)
 + [spring security](#security)
++ [项目上下文](#ContextHolder)
 + [单点登录](#sso)
 
 ## <span id="web">web</span>
@@ -382,6 +383,10 @@ find(String sql, Map<String, ?> paramMap, RowMapper<T> rowMapper)
 //springjdbc 原queryForMap方法,如果没查询到会抛异常，此处如果没有查询到，返回null
 queryForMap(String sql, Object... args)
 queryForMap(String sql, Map<String, ?> paramMap)
+// 分页查询
+find(Page<T> page, String sql, Map<String, ?> parameters, RowMapper<?> mapper)
+// 分页查询
+find(Page<T> page, String sql, RowMapper<T> mapper, Object... args)
 ```
 ## <span id="jpa">jpa</span>
 `jpa` 是 `java` 持久化的标准，`spring data jpa ` 使操作数据库变得更方便，需要说明的 `spring data jpa` 本身并不是jpa的实现，它默认使用的 `provider` 是 `hibernate`
@@ -430,6 +435,10 @@ T getById(Long id)
 find(String sql, Object... args)
 // 命名参数
 find(String sql, Map<String, ?> paramMap)
+// 分页
+find(Page<T> page, String hql, Map<String, ?> parameters)
+// 分页
+find(Page<T> page, String hql, Object... parameters)
 ```
 ## <span id="redis">redis</span>
 Redis 是性能极佳key-value数据库，常用来做缓存
@@ -763,7 +772,33 @@ security.loginPage=/login.html
 #自定义登录请求路径
 security.loginProcessingUrl=/login
 ```
+## <span id="ContextHolder">项目上线文</span>
+为了方面使用，封装一个上下文对象 `ContextHolder`
 
+```
+// 获取当前线程HttpServletRequest
+getRequest()
+// 获取当前线程HttpServletResponse
+getResponse()
+// 获取当前HttpSession
+getHttpSession()
+setSessionAttribute(String key, Serializable entity)
+getSessionAttribute(String key)
+setRequestAttribute(String key, Object entity)
+getRequestAttribute(String key)
+// 获取 ApplicationContext
+getApplicationContext()
+//根据beanId获取spring bean
+getBean(String beanId)
+// 获取当前登录用户
+getLoginUser()
+// 获取当前登录用户 id
+getLoginUserId()
+// 获取当前登录用户 为空则抛出异常
+getRequiredLoginUser()
+// 获取当前登录用户id， 为空则抛出异常
+getRequiredLoginUserId()
+```
 
 ## <span id="sso">单点登录</span>
 单点登录系统（SSO，single sign-on）指的的，多个系统，共用一套用户体系，只要登录其中一个系统，访问其他系统不需要重新登录

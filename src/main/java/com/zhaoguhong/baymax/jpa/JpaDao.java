@@ -2,13 +2,13 @@ package com.zhaoguhong.baymax.jpa;
 
 import com.zhaoguhong.baymax.common.BaseEntity;
 import com.zhaoguhong.baymax.common.Page;
+import com.zhaoguhong.baymax.util.SqlUtils;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -48,7 +48,7 @@ public class JpaDao {
 
   public <T> Page<T> find(Page<T> page, String hql, Object... parameters) {
     Query query = createQuery(hql, parameters);
-    long totalCount = findUnique(generateCountHql(hql), parameters);
+    long totalCount = findUnique(SqlUtils.getCountSql(hql), parameters);
     page.setTotalCount((int) totalCount);
     query.setFirstResult(page.getFirstEntityIndex());
     query.setMaxResults(page.getPageSize());
@@ -58,7 +58,7 @@ public class JpaDao {
 
   public <T> Page<T> find(Page<T> page, String hql, Map<String, ?> parameters) {
     Query query = createQuery(hql, parameters);
-    long totalCount = findUnique(generateCountHql(hql), parameters);
+    long totalCount = findUnique(SqlUtils.getCountSql(hql), parameters);
     page.setTotalCount((int) totalCount);
     query.setFirstResult(page.getFirstEntityIndex());
     query.setMaxResults(page.getPageSize());
@@ -75,14 +75,14 @@ public class JpaDao {
   }
 
   public Query createQuery(String hql, Object... parameters) {
-    hql = hql.replace("?","?variable");
+    hql = hql.replace("?", "?variable");
     for (int i = 1; hql.contains("?variable"); i++) {
-      hql =  hql.replaceFirst("\\?variable","?"+i);
+      hql = hql.replaceFirst("\\?variable", "?" + i);
     }
     Query query = entityManager.createQuery(hql);
     if (parameters != null) {
       for (int i = 0; i < parameters.length; i++) {
-        query.setParameter(i+1, parameters[i]);
+        query.setParameter(i + 1, parameters[i]);
       }
     }
     return query;
@@ -96,15 +96,6 @@ public class JpaDao {
       });
     }
     return query;
-  }
-
-  /**
-   * 拼接查询数量hql
-   */
-  protected String generateCountHql(String hql) {
-    hql = StringUtils.substringAfter(hql, "from");
-    hql = StringUtils.substringBeforeLast(hql, "order by");
-    return "select count(*)  from " + hql;
   }
 
 }

@@ -3,6 +3,7 @@ package com.zhaoguhong.baymax.jpa;
 
 import com.zhaoguhong.baymax.common.BaseEntity;
 import com.zhaoguhong.baymax.common.BaseUserEntity;
+import com.zhaoguhong.baymax.common.ContextHolder;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -26,7 +27,7 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
   @Transactional
   public void saveEntity(T entity) {
     entity.setCreatedTime(new Date());
-//    entity.setCreatedBy(ContextHolder.getLoginUserId());
+    entity.setCreatedBy(ContextHolder.getLoginUserId());
     entity.setIsDeleted(0);
     save(entity);
   }
@@ -35,7 +36,7 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
   @Transactional
   public void updateEntity(T entity) {
     entity.setUpdatedTime(new Date());
-//    entity.setUpdatedBy(ContextHolder.getLoginUserId());
+    entity.setUpdatedBy(ContextHolder.getLoginUserId());
     save(entity);
   }
 
@@ -43,7 +44,7 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
   @Transactional
   public void deleteEntity(T entity) {
     entity.setUpdatedTime(new Date());
-//    entity.setUpdatedBy(ContextHolder.getLoginUserId());
+    entity.setUpdatedBy(ContextHolder.getLoginUserId());
     entity.setIsDeleted(0);
     save(entity);
   }
@@ -74,7 +75,7 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
 
   @Override
   public <T extends BaseUserEntity> T findByIdAndUserId(Long id, Long userId) {
-    String jpql = "from " + getDomainClass().getName() + " where deleted = 0 and userId =:userId ";
+    String jpql = "from " + getDomainClass().getName() + " where isDeleted = 0 and userId =:userId ";
     T entity = (T) entityManager.createQuery(jpql)
         .setParameter("userId", userId).getSingleResult();
     return entity;
@@ -82,13 +83,12 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
 
   @Override
   public <T extends BaseUserEntity> T findByIdForLoginUser(Long id) {
-    return null;
-//    return findByIdAndUserId(id, ContextHolder.getRequiredLoginUserId());
+    return findByIdAndUserId(id, ContextHolder.getRequiredLoginUserId());
   }
 
   @Override
   public List<T> getAll() {
-    String jpql = "from " + getDomainClass().getName() + " where deleted = 0";
+    String jpql = "from " + getDomainClass().getName() + " where isDeleted = 0";
     return entityManager.createQuery(jpql).getResultList();
   }
 }

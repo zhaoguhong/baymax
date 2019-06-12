@@ -37,6 +37,7 @@ public class JpaTest {
     Demo demo = new Demo();
     demo.setUserName("baymax");
     demo.setAge(10);
+    demo.setTitle("test");
     demoRepository.saveEntity(demo);
     log.info("测试新增:" + demo);
     log.info("测试getOne:" + demoRepository.getOne(1L));

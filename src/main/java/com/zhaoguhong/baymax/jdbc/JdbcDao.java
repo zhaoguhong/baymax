@@ -1,6 +1,8 @@
 package com.zhaoguhong.baymax.jdbc;
 
 import com.zhaoguhong.baymax.common.Page;
+import com.zhaoguhong.baymax.util.SqlUtils;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -94,7 +96,7 @@ public class JdbcDao {
     return result;
   }
 
-  public Integer queryForInt(String sql, Map<String, Object> paramMap) {
+  public Integer queryForInt(String sql, Map<String, ?> paramMap) {
     Integer result = getNamedParameterJdbcTemplate().queryForObject(sql, paramMap, Integer.class);
     return result;
   }
@@ -123,31 +125,54 @@ public class JdbcDao {
     }
     return (T) result.values().iterator().next();
   }
-  
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  public void pagingQuery(Page<?> page, String sql, RowMapper<?> mapper, Map<String, Object> parameters) {
-    String querySql = this.getPaginationSql(sql, page.getPageNo(), page.getPageSize());
-    String countSql = "select count(*) from (" + sql + ") sub_table_alias_";
-    if (parameters != null) {
-      if (mapper == null) {
-        page.setEntityList(((List) namedParameterJdbcTemplate.queryForList(querySql, parameters)));
-      } else {
-        page.setEntityList((List) namedParameterJdbcTemplate.query(querySql, parameters, mapper));
-      }
-      page.setTotalCount(namedParameterJdbcTemplate.queryForObject(countSql, parameters, Integer.class));
-    } else {
-      if (mapper == null) {
-        page.setEntityList((List) jdbcTemplate.queryForList(querySql));
-      } else {
-        page.setEntityList((List) jdbcTemplate.query(querySql, mapper));
-      }
-      page.setTotalCount(jdbcTemplate.queryForObject(countSql, Integer.class));
-    }
+
+  public Page<Map<String, Object>> find(Page<Map<String, Object>> page, String sql, Map<String, ?> parameters) {
+    return find(page,sql,parameters,null);
   }
-  
-  public String getPaginationSql(String sql, int pageNo, int pageSize) {
-    int startNo = (pageNo - 1) * pageSize;
-    return sql + " limit " + startNo + "," + pageSize;
+
+  /**
+   * 分页查询
+   * @param page  分页对象
+   * @param sql   sql语句
+   * @param parameters  参数
+   * @param mapper  映射mapper
+   */
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  public <T> Page<T> find(Page<T> page, String sql, Map<String, ?> parameters, RowMapper<?> mapper) {
+    String querySql = SqlUtils.getMysqlPageSql(sql, page.getPageNo(), page.getPageSize());
+    if(parameters == null){
+      parameters = Collections.emptyMap();
+    }
+    if (mapper == null) {
+      page.setEntityList(((List) this.find(querySql, parameters)));
+    } else {
+      page.setEntityList((List) this.find(querySql, parameters, mapper));
+    }
+
+    String countSql = SqlUtils.getCountSql(sql);
+    page.setTotalCount(this.queryForInt(countSql, parameters));
+    return page;
+  }
+
+  /**
+   * 分页
+   * @param page   分页对象
+   * @param sql    sql语句
+   * @param mapper 映射mapper
+   * @param args   参数
+   * @param <T>    返回值泛型类型
+   * @return
+   */
+  public <T> Page<T> find(Page<T> page, String sql, RowMapper<T> mapper, Object... args) {
+    String querySql = SqlUtils.getMysqlPageSql(sql, page.getPageNo(), page.getPageSize());
+    if (mapper == null) {
+      page.setEntityList(((List) this.find(querySql, args)));
+    } else {
+      page.setEntityList((List) this.find(querySql, args, mapper));
+    }
+    String countSql = SqlUtils.getCountSql(sql);
+    page.setTotalCount(this.queryForInt(countSql, args));
+    return page;
   }
 
 }
