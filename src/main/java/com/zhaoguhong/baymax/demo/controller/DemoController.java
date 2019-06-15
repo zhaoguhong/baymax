@@ -3,6 +3,7 @@ package com.zhaoguhong.baymax.demo.controller;
 import com.zhaoguhong.baymax.common.ResponseResult;
 import com.zhaoguhong.baymax.demo.dao.DemoMapper;
 import com.zhaoguhong.baymax.demo.entity.Demo;
+import com.zhaoguhong.baymax.log.LogAspect;
 import java.util.List;
 import javax.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -73,10 +74,12 @@ public class DemoController {
    * 测试日志
    */
   @GetMapping("/log")
-  public void log() {
+  @LogAspect("测试")
+  public String log(String d,int b) {
     log.debug("------------debug------------");
     log.info("------------info------------");
     log.warn("------------warn------------");
+    return "d";
   }
 
 }

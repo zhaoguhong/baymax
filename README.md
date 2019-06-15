@@ -12,6 +12,7 @@
 + [统一响应返回值](#result)
 + [异常](#exception)
 + [数据校验](#validation)
++ [日志](#log)
 + [数据库连接池](#datasource)
 + [spring jdbc](#jdbc)
 + [jpa](#jpa)
@@ -21,6 +22,9 @@
 + [spring security](#security)
 + [项目上下文](#ContextHolder)
 + [单点登录](#sso)
++ [邮件](#mail)
++ [maven](#maven)
++ [总结](#总结)
 
 ## <span id="web">web</span>
 web模块是开发项目必不可少的一个模块
@@ -106,7 +110,7 @@ management.server.port=8082
 # 加载所有的端点 默认只加载 info,health
 management.endpoints.web.exposure.include=*
 # actuator路径前缀，默认 /actuator
-management.endpoints.web.base-path=/actuatorw
+management.endpoints.web.base-path=/actuator
 ```
 ## <span id="lombok">lombok</span>
 lombok可以在编译期生成对应的java代码，使代码看起来更简洁，同时减少开发工作量
@@ -213,6 +217,30 @@ public class ResponseResult<T> {
   }
 
 ```
+
+#### ResponseEntity
+spring其实封装了ResponseEntity 处理响应，ResponseEntity 包含 状态码，头部信息，响应体 三部分
+
+```java
+  /**
+   * 测试请求成功
+   * @return
+   */
+  @GetMapping("/responseEntity")
+  public ResponseEntity<String> responseEntity() {
+    return ResponseEntity.ok("请求成功");
+  }
+
+  /**
+   * 测试服务器内部错误
+   * @return
+   */
+  @GetMapping("/InternalServerError")
+  public ResponseEntity<String> responseEntityerror() {
+    return new ResponseEntity<>("出错了", HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+```
+
 ## <span id="exception">异常</span>
 #### 自定义异常体系
 为了方便异常处理，定义一套异常体系，BaymaxException 做为所有自定义异常的父类
@@ -251,20 +279,6 @@ public class GlobalControllerExceptionHandler {
   public ResponseResult<?> handleNoneLoginException(NoneLoginException ex) {
     return ResponseResult.unLogin();
   }
-
-  /**
-   * 处理未知的错误
-   */
-  @ExceptionHandler(value = {Exception.class})
-  public ResponseResult<Long> handleunknownException(Exception ex) {
-    ExceptionLog log = new ExceptionLog(new Date(), ExceptionUtils.getStackTrace(ex));
-    exceptionLogMapper.insert(log);
-    ResponseResult<Long> result = ResponseResult.unknownError("服务器异常:" + log.getId());
-    result.setData(log.getId());
-    return result;
-  }
-
-}
 ```
 #### 异常持久化
 
@@ -285,6 +299,25 @@ public class GlobalControllerExceptionHandler {
     return result;
   }
 ```
+#### 异常日志接口
+对外开一个异常日志查询接口`/anon/exception/{异常日志id}`，方便查询
+
+```
+@RestController
+@RequestMapping("/anon/exception")
+public class ExceptionController {
+
+  @Autowired
+  private ExceptionLogMapper exceptionLogMapper;
+
+  @GetMapping(value = "/{id}")
+  public String getDemo(@PathVariable(value = "id") Long id) {
+    return exceptionLogMapper.selectByPrimaryKey(id).getException();
+  }
+
+} 
+```
+
 ## <span id="validation">数据校验</span>
 [JSR 303 ](https://www.ibm.com/developerworks/cn/java/j-lo-jsr303/)定义了一系列的 Bean Validation 规范，Hibernate Validator 是 Bean Validation 的实现，并进行了扩展
 
@@ -333,12 +366,49 @@ public class Demo extends BaseEntity{
     }
   }
 ```
+## <span id="log">log</span>
+
+spring boot 的默认使用的日志是`logback`,web模块依赖日志的 `starter`，所以这里不用再引入依赖，[详细配置](https://docs.spring.io/spring-boot/docs/2.1.5.RELEASE/reference/htmlsingle/#boot-features-logging)
+
+#### 修改日志级别
+Actuator 组件提供了日志相关接口，可以查询日志级别或者动态修改日志级别
+
+```
+// 查看所有包/类的日志级别
+/actuator/loggers
+// 查看指定包/类日志级别 get 请求
+/actuator/loggers/com.zhaoguhong.baymax.demo.controller.DemoController
+//修改日志级别 post 请求 参数 {"configuredLevel":"debug"}
+/actuator/loggers/com.zhaoguhong.baymax.demo.controller.DemoController
+```
+
+#### 日志切面
+添加一个日志切面，方便记录方法执行的入参和出现
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface LogAspect {
+
+  /**
+   * 日志描述
+   */
+  String value() default "";
+
+  /**
+   * 日志级别
+   */
+  String level() default "INFO";
+
+}
+```
+使用时直接添加到方法上即可
 
 ## <span id="datasource">数据库连接池</span>
 
-springboot1.X的数据库连接池是tomcat连接池，springboot2默认的数据库连接池由Tomcat换成HikariCP，HikariCP是一个高性能的JDBC连接池，号称最快的连接池
+springboot1.X的数据库连接池是tomcat连接池，springboot2默认的数据库连接池由Tomcat换成 [HikariCP](https://github.com/brettwooldridge/HikariCP)，`HikariCP`是一个高性能的JDBC连接池，号称最快的连接池
 
-Druid是阿里巴巴数据库事业部出品，为监控而生的数据库连接池，这里选取Druid作为项目的数据库连接池
+[Druid](https://github.com/alibaba/druid) 是阿里巴巴数据库事业部出品，为监控而生的数据库连接池，这里选取`Druid`作为项目的数据库连接池
 
 maven 依赖
 
@@ -486,7 +556,7 @@ public class RedisConfig {
 }
 ```
 ## <span id="mogodb">mogodb</span>
-MongoDB 是文档型数据库，在spring中使用也很方便
+MongoDB 是文档型数据库，使用 `spring data mogodb` 可以很方便对mogodb进行操作
 
 maven 依赖
 
@@ -496,7 +566,7 @@ maven 依赖
       <artifactId>spring-boot-starter-data-mongodb</artifactId>
     </dependency>
 ```
-sprign data mogodb 提供了 MongoTemplate 对mogodb进行使用，我在该类的基础上又扩展了一下，可以自定义自己的方法
+`sprign data mogodb` 提供了 `MongoTemplate` 对mogodb进行操作，我在该类的基础上又扩展了一下，可以自定义自己的方法
 
 ```java
 @Configuration
@@ -543,7 +613,7 @@ dao层直接用接口，简洁，方便
 
 ```java
 @Mapper
-public interface DemoMapper extends MyMapper<Demo>{
+public interface DemoMapper {
   /**
    * 注解方式
    */
@@ -584,16 +654,25 @@ mapper.mappers=com.zhaoguhong.baymax.mybatis.MyMapper
 mapper.not-empty=false
 mapper.identity=MYSQL
 ```
+自定义自己的 `MyMapper` 方便扩展方法
+`MyMapper` 接口 中封装了通用的方法，和`jpa`的`BaseRepository`类似，这里不再赘述
+
 声明`mapper`需要加`Mapper`注解，还稍显麻烦，可以用扫描的方式
 
 ```java
 @Configuration
-@tk.mybatis.spring.annotation.MapperScan(basePackages = "com.zhaoguhong.baymax.*.dao")
+@tk.mybatis.spring.annotation.MapperScan(basePackages = "com.zhaoguhong.baymax.**.dao")
 public class MybatisConfig {
 }
 ```
-`MyMapper` 接口 中封装了通用的方法，和`jpa`的`BaseRepository`类似，这里不再赘述
 
+
+使用时直接继承MyMapper接口即可
+
+```java
+public interface DemoMapper extends MyMapper<Demo>{
+}
+```
 #### 分页
 
 [pagehelper](https://github.com/pagehelper)是一个很好用的mybatis的分页插件
@@ -630,7 +709,7 @@ pagehelper 虽然好用，但项目中有自己的分页对象，所以单独写
 ```java
 @Configuration
 // 设置mapper扫描的包
-@tk.mybatis.spring.annotation.MapperScan(basePackages = "com.zhaoguhong.baymax.*.dao")
+@tk.mybatis.spring.annotation.MapperScan(basePackages = "com.zhaoguhong.baymax.**.dao")
 @Slf4j
 public class MybatisConfig implements ApplicationListener<ContextRefreshedEvent> {
 
@@ -844,4 +923,93 @@ cas.serverLogoutUrl=${cas.serverUrl}/logout
 #单点登录成功回调地址
 cas.clientCasUrl=${cas.clientUrl}/login/cas
 ```
+
+## <span id="mail">邮件</span>
+因为要使用freeMarker解析模板，所以也要引入freeMarker依赖
+
+
+```xml
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-mail</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.freemarker</groupId>
+      <artifactId>freemarker</artifactId>
+    </dependency>
+```
+相关配置
+
+```
+#邮件
+#设置邮箱主机,163邮箱为smtp.163.com，qq为smtp.qq.com
+spring.mail.host = smtp.163.com
+spring.mail.username =
+#授权码
+spring.mail.password =
+#默认的邮件发送人
+mail.sender =
+```
+封装一个 `MailService` 
+
+```java
+   // 根据相关配置发送邮件
+  void sendMail(MailModel mailModel);
+   // 发送简单的邮件
+  void sendSimleMail(String to, String subject, String content);
+   // 发送html格式的邮件
+  void sendHtmlMail(String to, String subject, String content);
+   // 发送带附件的邮件
+  void sendAttachmentMail(String to, String subject, String content, String path);
+   // 发送带附件的html格式邮件
+  void sendAttachmentHtmlMail(String to, String subject, String content, String path);
+   // 根据模版发送简单邮件
+  void sendMailByTemplate(String to, String subject, String templateName,
+      Map<String, Object> params);
+  
+}
+
+```
+
+## <span id="mail">maven</span>
+#### 镜像
+设置阿里云镜像，加快下载速度
+修改 setting.xml，在 mirrors 节点上，添加
+
+```xml
+<mirror> 
+    <id>alimaven</id> 
+    <name>aliyun maven</name> 
+    <url>http://maven.aliyun.com/nexus/content/groups/public/</url> 
+    <mirrorOf>central</mirrorOf> 
+</mirror> 
+```
+也可以在项目 pom.xml 文件添加 ，仅当前项目有效
+
+```xml
+  <repositories>
+    <repository>
+      <id>alimaven</id>
+      <name>aliyun maven</name>
+      <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>daily</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+        <checksumPolicy>warn</checksumPolicy>
+      </snapshots>
+      <layout>default</layout>
+    </repository>
+  </repositories>
+```
+
+## <span id="总结">总结</span>
+1. spring boot 遵循开箱即用的原则，并不需要做过多配置，网上的教程质量参差不齐，并且1.X和2.X使用时还有诸多不同，因此在使用时尽量参考[官方文档](https://spring.io/projects/spring-boot#learn)
+
+2. 有时候默认的配置并不能满足我们的需求，需要做一些自定义配置，推荐先看一下`springboot`自动配置的源码，再做定制化处理
+
+3. 技术没有银弹，在做技术选型时不要过于迷信一种技术，适合自己的业务的技术才是最好的
 

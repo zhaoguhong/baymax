@@ -1,5 +1,6 @@
 package com.zhaoguhong.baymax;
 
+import com.zhaoguhong.baymax.log.LogAspect;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +14,7 @@ public class BaymaxApplication {
     SpringApplication.run(BaymaxApplication.class, args);
   }
 
+  @LogAspect("测试")
   @GetMapping("/test")
   public String test() {
     return "hello baymax";
