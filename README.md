@@ -13,10 +13,12 @@
 + [异常](#exception)
 + [数据校验](#validation)
 + [日志](#log)
++ [swagger](#swagger)
 + [数据库连接池](#datasource)
 + [spring jdbc](#jdbc)
 + [jpa](#jpa)
 + [redis](#redis)
++ [spring cache](#spring cache)
 + [mogodb](#mogodb)
 + [mybatis](#mybatis)
 + [spring security](#security)
@@ -373,7 +375,7 @@ spring boot 的默认使用的日志是`logback`,web模块依赖日志的 `start
 #### 修改日志级别
 Actuator 组件提供了日志相关接口，可以查询日志级别或者动态修改日志级别
 
-```
+```java
 // 查看所有包/类的日志级别
 /actuator/loggers
 // 查看指定包/类日志级别 get 请求
@@ -383,7 +385,7 @@ Actuator 组件提供了日志相关接口，可以查询日志级别或者动�
 ```
 
 #### 日志切面
-添加一个日志切面，方便记录方法执行的入参和出现
+添加一个日志切面，方便记录方法执行的入参和出参
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -403,6 +405,96 @@ public @interface LogAspect {
 }
 ```
 使用时直接添加到方法上即可
+
+## <span id="swagger">swagger</span>
+swagger 是一个很好用的文档生成工具
+
+maven 依赖
+
+```xml
+    <dependency>
+      <groupId>io.springfox</groupId>
+      <artifactId>springfox-swagger2</artifactId>
+      <version>2.7.0</version>
+    </dependency>
+    <dependency>
+      <groupId>io.springfox</groupId>
+      <artifactId>springfox-swagger-ui</artifactId>
+      <version>2.7.0</version>
+    </dependency>
+```
+相关配置
+
+```java
+@Configuration
+@EnableSwagger2
+public class SwaggerConfig {
+
+  @Value("${swagger.enable:false}")
+  private boolean swaggerEnable;
+
+  //文档访问前缀
+  public static final String ACCESS_PREFIX = "/swagger-resources/**,/swagger-ui.html**,/webjars/**,/v2/**";
+
+  @Bean
+  public Docket docket() {
+    return new Docket(DocumentationType.SWAGGER_2)
+        .apiInfo(apiInfo())
+        // 设置是否开启swagger,生产环境关闭
+        .enable(swaggerEnable)
+        .select()
+        // 当前包路径
+        .apis(RequestHandlerSelectors.basePackage("com.zhaoguhong.baymax"))
+        .apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.class))
+        .paths(PathSelectors.any())
+        .build();
+  }
+
+  // 构建api文档的详细信息
+  private ApiInfo apiInfo() {
+    return new ApiInfoBuilder()
+        // 页面标题
+        .title("接口文档")
+        // 创建人
+        .contact(new Contact("孤鸿", "https://github.com/zhaoguhong/baymax", ""))
+        // 版本号
+        .version("1.0")
+        // 描述
+        .description("大白的接口文档")
+        .build();
+  }
+}
+```
+为文档加一个开关
+
+```
+#是否开启swagger文档，生产环境关闭
+swagger.enable=true
+```
+然后就可以愉快的在写代码的同时写文档了
+
+```java
+  @PostMapping("/add")
+  @ApiOperation(value = "新增 demo")
+  public ResponseResult<String> add(@RequestBody @Valid Demo demo) {
+    demoMapper.insert(demo);
+    return ResponseResult.success();
+  }
+```
+
+
+```java
+@ApiModel("示例")
+public class Demo extends BaseEntity{
+  @ApiModelProperty("用户名")
+  private String userName;
+  @ApiModelProperty("标题")
+  private String title;
+  @ApiModelProperty("年龄")
+  private Integer age;
+}
+```
+访问 `localhost:8080/swagger-ui.html` 就可以看到效果了
 
 ## <span id="datasource">数据库连接池</span>
 
@@ -426,7 +518,7 @@ maven 依赖
 spring.datasource.druid.stat-view-servlet.login-username=admin
 spring.datasource.druid.stat-view-servlet.login-password=123456
 ```
-
+然后就可以访问 `localhost:8080/druid`看监控信息了
 ## <span id="jdbc">spring jdbc</span>
 maven 依赖
 
@@ -486,7 +578,7 @@ void saveEntity(T entity)
 void updateEntity(T entity)
 // 逻辑删除
 void deleteEntity(T entity)
-//批量保存
+// 批量保存
 void saveEntites(Collection<T> entitys)
 // 批量更新
 void updateEntites(Collection<T> entitys)
@@ -511,8 +603,8 @@ find(Page<T> page, String hql, Map<String, ?> parameters)
 find(Page<T> page, String hql, Object... parameters)
 ```
 ## <span id="redis">redis</span>
-Redis 是性能极佳key-value数据库，常用来做缓存
-java 中常用的客户端 `Jedis` 和 `Lettuce`, `spring data redis` 是基于 `Lettuce` 做的二次封装
+Redis 是性能极佳key-value数据库，常用来做缓存，
+java 中常用的客户端有 `Jedis` 和 `Lettuce`, `spring data redis` 是基于 `Lettuce` 做的二次封装
 
 maven 依赖
 
@@ -555,6 +647,85 @@ public class RedisConfig {
   }
 }
 ```
+## <span id="spring cache">spring cache</span>
+spring cache 抽象出了一组缓存接口，通过注解的方式使用，可以很方便的配置其具体实现，[详细配置](https://docs.spring.io/spring-boot/docs/2.1.5.RELEASE/reference/htmlsingle/#boot-features-caching)
+
+这里使用redis做为缓存 provider, 默认的value序列化方式是JDK，为方便查看，可以修改为用json序列化
+
+有时会有设置`redis key`前缀的需求，默认是这样的
+
+```java
+	static CacheKeyPrefix simple() {
+	    // 在 cacheName 后面添加 "::"
+		return name -> name + "::";
+	}
+```
+spring boot 提供的有配置前缀的属性
+
+```
+spring.cache.redis.key-prefix= # Key prefix.
+```
+但这是一个坑，这样写的效果实际这样的，会把`cacheName`干掉，显然不是我们想要的
+
+```java
+CacheKeyPrefix cacheKeyPrefix = (cacheName) -> prefix;
+```
+我们想要的是把前缀加在最前面，保留`cacheName`
+
+```java
+CacheKeyPrefix cacheKeyPrefix = (cacheName) -> keyPrefix + "::" + cacheName + "::";
+```
+参考`org.springframework.boot.autoconfigure.cache.RedisCacheConfiguration`，声明 `RedisCacheManager`
+
+```java
+@Configuration
+@EnableConfigurationProperties(CacheProperties.class)
+@EnableCaching
+public class SpringCacheConfig {
+
+  @Autowired
+  private CacheProperties cacheProperties;
+
+  @Bean
+  public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
+    RedisCacheManagerBuilder builder = RedisCacheManager
+        .builder(redisConnectionFactory)
+        .cacheDefaults(determineConfiguration());
+    List<String> cacheNames = this.cacheProperties.getCacheNames();
+    if (!cacheNames.isEmpty()) {
+      builder.initialCacheNames(new LinkedHashSet<>(cacheNames));
+    }
+    return builder.build();
+  }
+
+  private org.springframework.data.redis.cache.RedisCacheConfiguration determineConfiguration() {
+    Redis redisProperties = this.cacheProperties.getRedis();
+    org.springframework.data.redis.cache.RedisCacheConfiguration config = org.springframework.data.redis.cache.RedisCacheConfiguration
+        .defaultCacheConfig();
+    // 修改序列化为json
+    config = config.serializeValuesWith(RedisSerializationContext.SerializationPair
+        .fromSerializer(jackson2JsonRedisSerializer()));
+    if (redisProperties.getTimeToLive() != null) {
+      config = config.entryTtl(redisProperties.getTimeToLive());
+    }
+    if (redisProperties.getKeyPrefix() != null) {
+      // 重写前缀拼接方式
+      config = config.computePrefixWith((cacheName) -> redisProperties.getKeyPrefix() + "::" + cacheName + "::");
+    }
+    if (!redisProperties.isCacheNullValues()) {
+      config = config.disableCachingNullValues();
+    }
+    if (!redisProperties.isUseKeyPrefix()) {
+      config = config.disableKeyPrefix();
+    }
+    return config;
+  }
+    // 省略 jackson2JsonRedisSerializer() 
+
+}
+```
+
+
 ## <span id="mogodb">mogodb</span>
 MongoDB 是文档型数据库，使用 `spring data mogodb` 可以很方便对mogodb进行操作
 
@@ -654,8 +825,7 @@ mapper.mappers=com.zhaoguhong.baymax.mybatis.MyMapper
 mapper.not-empty=false
 mapper.identity=MYSQL
 ```
-自定义自己的 `MyMapper` 方便扩展方法
-`MyMapper` 接口 中封装了通用的方法，和`jpa`的`BaseRepository`类似，这里不再赘述
+定义自己的 `MyMapper` 方便扩展，`MyMapper` 接口 中封装了通用的方法，和`jpa`的`BaseRepository`类似，这里不再赘述
 
 声明`mapper`需要加`Mapper`注解，还稍显麻烦，可以用扫描的方式
 
@@ -851,10 +1021,10 @@ security.loginPage=/login.html
 #自定义登录请求路径
 security.loginProcessingUrl=/login
 ```
-## <span id="ContextHolder">项目上线文</span>
+## <span id="ContextHolder">项目上下文</span>
 为了方面使用，封装一个上下文对象 `ContextHolder`
 
-```
+```java
 // 获取当前线程HttpServletRequest
 getRequest()
 // 获取当前线程HttpServletResponse
@@ -883,8 +1053,7 @@ getRequiredLoginUserId()
 单点登录系统（SSO，single sign-on）指的的，多个系统，共用一套用户体系，只要登录其中一个系统，访问其他系统不需要重新登录
 
 #### CAS
-CAS(Central Authentication Service)是耶鲁大学的一个开源项目，是比较流行的单独登录解决方案
-在CAS中，只负责登录的系统被称为服务端，其它所有系统被称为客户端
+CAS(Central Authentication Service)是耶鲁大学的一个开源项目，是比较流行的单独登录解决方案。在CAS中，只负责登录的系统被称为服务端，其它所有系统被称为客户端
 
 ##### 登录流程
 1. 用户访问客户端，客户端判断是否登录，如果没有登录，重定向到服务端去登录

@@ -1,7 +1,10 @@
 package com.zhaoguhong.baymax.security.config;
 
+import com.zhaoguhong.baymax.swagger.SwaggerConfig;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
  * web安全相关配置
+ *
  * @author guhong
  * @date 2019/5/17
  */
@@ -23,6 +27,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
   @Autowired
   private UserDetailsService userDetailsService;
+
+  @Value("${swagger.enable:false}")
+  private boolean swaggerEnable;
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
@@ -52,14 +59,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   @Override
   public void configure(WebSecurity web) throws Exception {
     String[] ignoringArray = securityProperties.getIgnoringArray();
-    // 忽略的资源，直接跳过spring security权限校验
-    if (ArrayUtils.isNotEmpty(ignoringArray)) {
-      web.ignoring().antMatchers(ignoringArray);
+    // swagger 接口文档，不设置访问权限
+    if (swaggerEnable && StringUtils.isNotBlank(SwaggerConfig.ACCESS_PREFIX)) {
+      ignoringArray = ArrayUtils.addAll(ignoringArray, SwaggerConfig.ACCESS_PREFIX.split(","));
     }
+    // 忽略的资源，直接跳过spring security权限校验
+    web.ignoring().antMatchers(ignoringArray);
   }
 
   /**
-   *
    * 声明密码加密方式
    */
   @Bean
