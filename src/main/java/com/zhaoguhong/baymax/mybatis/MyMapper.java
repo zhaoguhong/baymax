@@ -1,6 +1,7 @@
 package com.zhaoguhong.baymax.mybatis;
 
 import com.zhaoguhong.baymax.common.BaseEntity;
+import com.zhaoguhong.baymax.common.ContextHolder;
 import java.util.Collection;
 import java.util.Date;
 import tk.mybatis.mapper.common.Mapper;
@@ -12,20 +13,20 @@ public interface MyMapper<T extends BaseEntity> extends Mapper<T> {
 
   default void saveEntity(T entity) {
     entity.setCreatedTime(new Date());
-//    entity.setCreatedBy(ContextHolder.getLoginUserId());
+    entity.setCreatedBy(ContextHolder.getLoginUserId());
     entity.setIsDeleted(0);
     insert(entity);
   }
 
   default void updateEntity(T entity) {
     entity.setUpdatedTime(new Date());
-//    entity.setUpdatedBy(ContextHolder.getLoginUserId());
+    entity.setUpdatedBy(ContextHolder.getLoginUserId());
     updateByPrimaryKey(entity);
   }
 
   default void deleteEntity(T entity) {
     entity.setUpdatedTime(new Date());
-//    entity.setUpdatedBy(ContextHolder.getLoginUserId());
+    entity.setUpdatedBy(ContextHolder.getLoginUserId());
     entity.setIsDeleted(0);
     updateByPrimaryKey(entity);
   }

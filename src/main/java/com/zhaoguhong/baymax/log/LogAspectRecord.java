@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 public class LogAspectRecord {
 
   @Around("within(com.zhaoguhong.baymax..*) && @annotation(com.zhaoguhong.baymax.log.LogAspect)")
-  public void addBeforeLogger(ProceedingJoinPoint joinPoint) throws Throwable {
+  public Object addLogger(ProceedingJoinPoint joinPoint) throws Throwable {
 
     String methodName = joinPoint.getSignature().getName();
     Class<?> classTarget = joinPoint.getTarget().getClass();
@@ -31,6 +31,7 @@ public class LogAspectRecord {
     printLog("入参", logAspect, joinPoint.getArgs());
     Object result = joinPoint.proceed();
     printLog("出参", logAspect, result);
+    return result;
   }
 
   private void printLog(String argDesc, LogAspect logAspect, Object args) {
