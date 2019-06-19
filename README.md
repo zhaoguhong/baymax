@@ -18,7 +18,7 @@
 + [spring jdbc](#jdbc)
 + [jpa](#jpa)
 + [redis](#redis)
-+ [spring cache](#spring cache)
++ [spring cache](#springcache)
 + [mogodb](#mogodb)
 + [mybatis](#mybatis)
 + [spring security](#security)
@@ -511,7 +511,6 @@ maven 依赖
       <version>1.1.10</version>
     </dependency>
 ```
-
 设置用户名密码
 
 ```
@@ -647,7 +646,7 @@ public class RedisConfig {
   }
 }
 ```
-## <span id="spring cache">spring cache</span>
+## <span id="springcache">spring cache</span>
 spring cache 抽象出了一组缓存接口，通过注解的方式使用，可以很方便的配置其具体实现，[详细配置](https://docs.spring.io/spring-boot/docs/2.1.5.RELEASE/reference/htmlsingle/#boot-features-caching)
 
 这里使用redis做为缓存 provider, 默认的value序列化方式是JDK，为方便查看，可以修改为用json序列化
