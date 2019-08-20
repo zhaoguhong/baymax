@@ -4,8 +4,28 @@
   <meta charset="UTF-8">
   <title>Title</title>
 </head>
+<script
+    src="https://cdn.bootcss.com/jquery/2.2.3/jquery.js"></script>
 <body>
 hello,baymax,我是首页哦
-<a href="/logout">点我登出</a>
+<br/>
+<a href="/logout">点我测试登出</a>
+<br/>
+<a href="/logout" onclick="ajaxLogout()">点我测试ajax登出</a>
+
 </body>
+<script>
+
+  function ajaxLogout () {
+    $.ajax({
+      url : "/logout",
+      type : 'POST',
+      dataType : 'json',
+      success: function (data) {
+        alert(JSON.stringify(data))
+      }
+    });
+  }
+
+</script>
 </html>

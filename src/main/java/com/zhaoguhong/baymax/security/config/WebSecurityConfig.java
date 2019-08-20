@@ -1,5 +1,7 @@
 package com.zhaoguhong.baymax.security.config;
 
+import com.zhaoguhong.baymax.security.hander.MyLoginSuccessHandler;
+import com.zhaoguhong.baymax.security.hander.MyLogoutSuccessHandler;
 import com.zhaoguhong.baymax.swagger.SwaggerConfig;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +30,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   private UserDetailsService userDetailsService;
 
+  @Autowired
+  private MyLogoutSuccessHandler myLogoutSuccessHandler;
+
+  @Autowired
+  private MyLoginSuccessHandler myLoginSuccessHandler;
+
   @Value("${swagger.enable:false}")
   private boolean swaggerEnable;
 
@@ -44,11 +52,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .formLogin()
         // 自定义登录页
         .loginPage(securityProperties.getLoginPage())
+        .successHandler(myLoginSuccessHandler)
         // 自定义登录请求路径
         .loginProcessingUrl(securityProperties.getLoginProcessingUrl())
         .permitAll()
         .and()
         .logout()
+        .logoutSuccessHandler(myLogoutSuccessHandler)
         .permitAll();
 
     // 禁用CSRF
