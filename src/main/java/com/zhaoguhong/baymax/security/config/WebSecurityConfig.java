@@ -1,6 +1,8 @@
 package com.zhaoguhong.baymax.security.config;
 
-import com.zhaoguhong.baymax.security.hander.MyLoginSuccessHandler;
+import com.zhaoguhong.baymax.security.hander.MyAuthenctiationFailureHandler;
+import com.zhaoguhong.baymax.security.hander.MyAuthenticationSuccessHandler;
+import com.zhaoguhong.baymax.security.hander.MyLoginUrlAuthenticationEntryPoint;
 import com.zhaoguhong.baymax.security.hander.MyLogoutSuccessHandler;
 import com.zhaoguhong.baymax.swagger.SwaggerConfig;
 import org.apache.commons.lang3.ArrayUtils;
@@ -34,7 +36,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private MyLogoutSuccessHandler myLogoutSuccessHandler;
 
   @Autowired
-  private MyLoginSuccessHandler myLoginSuccessHandler;
+  private MyAuthenticationSuccessHandler myAuthenticationSuccessHandler;
 
   @Value("${swagger.enable:false}")
   private boolean swaggerEnable;
@@ -52,14 +54,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         .formLogin()
         // 自定义登录页
         .loginPage(securityProperties.getLoginPage())
-        .successHandler(myLoginSuccessHandler)
+        .successHandler(myAuthenticationSuccessHandler)
+        .failureHandler(new MyAuthenctiationFailureHandler(securityProperties.getLoginPage()))
         // 自定义登录请求路径
         .loginProcessingUrl(securityProperties.getLoginProcessingUrl())
         .permitAll()
         .and()
         .logout()
         .logoutSuccessHandler(myLogoutSuccessHandler)
-        .permitAll();
+        .permitAll()
+        .and()
+        .exceptionHandling()
+        // 自定义认证失败处理器
+        .authenticationEntryPoint(new MyLoginUrlAuthenticationEntryPoint(securityProperties.getLoginPage()));
 
     // 禁用CSRF
     http.csrf().disable();
