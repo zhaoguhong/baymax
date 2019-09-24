@@ -3,6 +3,7 @@ package com.zhaoguhong.baymax.mybatis.interceptor;
 import com.github.pagehelper.PageRowBounds;
 import com.zhaoguhong.baymax.common.Page;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
@@ -33,6 +34,13 @@ public class MyPageInterceptor implements Interceptor {
 
     if (parameter instanceof Page) {
       page = (Page<?>) parameter;
+    } else if (parameter instanceof Map) {
+      for (Object value : ((Map<String, Object>) parameter).values()) {
+        if (value instanceof Page) {
+          page = (Page) value;
+          break;
+        }
+      }
     }
 
     PageRowBounds pageRowBounds = null;

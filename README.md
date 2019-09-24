@@ -880,7 +880,7 @@ pagehelper 虽然好用，但项目中有自己的分页对象，所以单独写
 // 设置mapper扫描的包
 @tk.mybatis.spring.annotation.MapperScan(basePackages = "com.zhaoguhong.baymax.**.dao")
 @Slf4j
-public class MybatisConfig implements ApplicationListener<ContextRefreshedEvent> {
+public class MybatisConfig {
 
   @Autowired
   private List<SqlSessionFactory> sqlSessionFactoryList;
@@ -888,12 +888,13 @@ public class MybatisConfig implements ApplicationListener<ContextRefreshedEvent>
   /**
    * 添加自定义的分页插件，pageHelper 的分页插件PageInterceptor是用@PostConstruct添加的，自定义的应该在其后面添加
    * 真正执行时顺序是反过来，先执行MyPageInterceptor，再执行 PageInterceptor
+   *
+   * 所以要保证 PageHelperAutoConfiguration 先执行
    */
-  @Override
-  public void onApplicationEvent(ContextRefreshedEvent event) {
+  @Autowired
+  public void addPageInterceptor(PageHelperAutoConfiguration pageHelperAutoConfiguration) {
     MyPageInterceptor interceptor = new MyPageInterceptor();
     for (SqlSessionFactory sqlSessionFactory : sqlSessionFactoryList) {
-      log.info(sqlSessionFactory.getConfiguration().getInterceptors().toString());
       sqlSessionFactory.getConfiguration().addInterceptor(interceptor);
       log.info("注册自定义分页插件成功");
     }
