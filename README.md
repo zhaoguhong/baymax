@@ -29,7 +29,7 @@
 + [总结](#总结)
 
 ## <span id="web">web</span>
-web模块是开发项目必不可少的一个模块
+web模块是开发web项目必不可少的一个模块
 
 maven 依赖
 
@@ -40,7 +40,7 @@ maven 依赖
     </dependency>
 ```
 对于前后端分离项目，推荐直接使用``@RestController``注解
-需要注意的是，**强烈不建议直接用RequstMapping注解并且不指定方法类型的写法**，推荐使用`GetMaping`或者`PostMaping`之类的注解
+需要注意的是，**不建议直接用RequstMapping注解并且不指定方法类型的写法**，推荐使用`GetMaping`或者`PostMaping`之类的注解
 
 ```java
 @SpringBootApplication
@@ -286,6 +286,8 @@ public class GlobalControllerExceptionHandler {
 
 对于未知的异常，保存到数据库，方便后续排错
 
+需要说明是的，如果项目访问量比较大，推荐用 ELK 这种成熟的日志分析系统，不推荐日志保存到关系型数据库
+
 ```java
   @Autowired
   private ExceptionLogMapper exceptionLogMapper;
@@ -304,7 +306,7 @@ public class GlobalControllerExceptionHandler {
 #### 异常日志接口
 对外开一个异常日志查询接口`/anon/exception/{异常日志id}`，方便查询
 
-```
+```java
 @RestController
 @RequestMapping("/anon/exception")
 public class ExceptionController {
@@ -370,7 +372,7 @@ public class Demo extends BaseEntity{
 ```
 ## <span id="log">log</span>
 
-spring boot 的默认使用的日志是`logback`,web模块依赖日志的 `starter`，所以这里不用再引入依赖，[详细配置](https://docs.spring.io/spring-boot/docs/2.1.5.RELEASE/reference/htmlsingle/#boot-features-logging)
+spring boot 的默认使用的日志是`logback`,web模块依赖的有日志 `starter`，所以这里不用再引入依赖，[详细配置](https://docs.spring.io/spring-boot/docs/2.1.5.RELEASE/reference/htmlsingle/#boot-features-logging)
 
 #### 修改日志级别
 Actuator 组件提供了日志相关接口，可以查询日志级别或者动态修改日志级别
@@ -873,7 +875,8 @@ pagehelper.reasonable=true
 pagehelper 还有好多玩法，可以参考[这里](https://github.com/pagehelper/Mybatis-PageHelper/blob/master/wikis/zh/HowToUse.md) 
 
 #### 自定义分页
-pagehelper 虽然好用，但项目中有自己的分页对象，所以单独写一个拦截器，把他们整合到一起，为保证拦截器的顺序，在`spring ApplicationListener` 添加自定义的拦截器
+pagehelper 虽然好用，但项目中有自己的分页对象，所以单独写一个拦截器，把他们整合到一起
+这个地方要特别注意插件的顺序不要搞错
 
 ```java
 @Configuration
