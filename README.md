@@ -1,9 +1,5 @@
 # 基于springboot的web项目最佳实践
 
-该项目是基于springboot的web项目脚手架，对一些常用的框架进行整合，并进行了简单的二次封装
-
-项目名baymax取自动画片超能陆战队里面的大白，大白是一个医护充气机器人，希望这个项目你能像大白一样贴心，可以减少你的工作量
-
 + [web](#web)
 + [单元测试](#test)
 + [actuator应用监控](#actuator)
@@ -27,6 +23,15 @@
 + [邮件](#mail)
 + [maven](#maven)
 + [总结](#总结)
+
+
+`springboot` 可以说是现在做`javaweb`开发最火的技术，我在基于`springboot`搭建项目的过程中，踩过不少坑，发现整合框架时并非仅仅引入`starter` 那么简单。
+
+要做到简单，易用，扩展性更好，还需做不少二次封装，于是便写了个基于`springboot`的web项目脚手架，对一些常用的框架进行整合，并进行了简单的二次封装。
+
+项目名`baymax`取自动画片超能陆战队里面的大白，大白是一个医护充气机器人，希望这个项目你能像大白一样贴心，可以减少你的工作量。
+
+**github**  https://github.com/zhaoguhong/baymax
 
 ## <span id="web">web</span>
 web模块是开发web项目必不可少的一个模块
@@ -220,7 +225,7 @@ public class ResponseResult<T> {
 
 ```
 
-#### ResponseEntity
+### ResponseEntity
 spring其实封装了ResponseEntity 处理响应，ResponseEntity 包含 状态码，头部信息，响应体 三部分
 
 ```java
@@ -244,7 +249,7 @@ spring其实封装了ResponseEntity 处理响应，ResponseEntity 包含 状态�
 ```
 
 ## <span id="exception">异常</span>
-#### 自定义异常体系
+### 自定义异常体系
 为了方便异常处理，定义一套异常体系，BaymaxException 做为所有自定义异常的父类
 
 ```java
@@ -255,7 +260,7 @@ public class BusinessException  extends BaymaxException
 // 用户未登录异常
 public class NoneLoginException  extends BaymaxException
 ```
-#### 全局异常处理
+### 全局异常处理
 对所有的异常处理后再返回给前端
 
 ```java
@@ -282,7 +287,7 @@ public class GlobalControllerExceptionHandler {
     return ResponseResult.unLogin();
   }
 ```
-#### 异常持久化
+### 异常持久化
 
 对于未知的异常，保存到数据库，方便后续排错
 
@@ -303,7 +308,7 @@ public class GlobalControllerExceptionHandler {
     return result;
   }
 ```
-#### 异常日志接口
+### 异常日志接口
 对外开一个异常日志查询接口`/anon/exception/{异常日志id}`，方便查询
 
 ```java
@@ -374,7 +379,7 @@ public class Demo extends BaseEntity{
 
 spring boot 的默认使用的日志是`logback`,web模块依赖的有日志 `starter`，所以这里不用再引入依赖，[详细配置](https://docs.spring.io/spring-boot/docs/2.1.5.RELEASE/reference/htmlsingle/#boot-features-logging)
 
-#### 修改日志级别
+### 修改日志级别
 Actuator 组件提供了日志相关接口，可以查询日志级别或者动态修改日志级别
 
 ```java
@@ -386,7 +391,7 @@ Actuator 组件提供了日志相关接口，可以查询日志级别或者动�
 /actuator/loggers/com.zhaoguhong.baymax.demo.controller.DemoController
 ```
 
-#### 日志切面
+### 日志切面
 添加一个日志切面，方便记录方法执行的入参和出参
 
 ```java
@@ -806,7 +811,7 @@ public interface DemoMapper {
 	</select>
 </mapper>
 ```
-#### 通用mapper
+### 通用mapper
 mybatis 的单表增删改查写起来很啰嗦，[通用mapper](https://github.com/abel533/Mapper)很好的解决了这个问题
 
 maven 依赖
@@ -844,7 +849,7 @@ public class MybatisConfig {
 public interface DemoMapper extends MyMapper<Demo>{
 }
 ```
-#### 分页
+### 分页
 
 [pagehelper](https://github.com/pagehelper)是一个很好用的mybatis的分页插件
 
@@ -874,7 +879,7 @@ pagehelper.reasonable=true
 ```
 pagehelper 还有好多玩法，可以参考[这里](https://github.com/pagehelper/Mybatis-PageHelper/blob/master/wikis/zh/HowToUse.md) 
 
-#### 自定义分页
+### 自定义分页
 pagehelper 虽然好用，但项目中有自己的分页对象，所以单独写一个拦截器，把他们整合到一起
 这个地方要特别注意插件的顺序不要搞错
 
@@ -1055,19 +1060,19 @@ getRequiredLoginUserId()
 ## <span id="sso">单点登录</span>
 单点登录系统（SSO，single sign-on）指的的，多个系统，共用一套用户体系，只要登录其中一个系统，访问其他系统不需要重新登录
 
-#### CAS
+### CAS
 CAS(Central Authentication Service)是耶鲁大学的一个开源项目，是比较流行的单独登录解决方案。在CAS中，只负责登录的系统被称为服务端，其它所有系统被称为客户端
 
-##### 登录流程
+#### 登录流程
 1. 用户访问客户端，客户端判断是否登录，如果没有登录，重定向到服务端去登录
 2. 服务端登录成功，带着ticket重定向到客户端
 3. 客户端拿着ticket发送请求到服务端换取用户信息，获取到后就表示登录成功
 
-##### 登出流程
+#### 登出流程
 
 跳转到sso认证中心进行统一登出，cas 会通知所有客户端进行登出
 
-#### spring security 整合 cas
+### spring security 整合 cas
 
 maven 依赖
 
@@ -1145,7 +1150,7 @@ mail.sender =
 ```
 
 ## <span id="mail">maven</span>
-#### 镜像
+### 镜像
 设置阿里云镜像，加快下载速度
 修改 setting.xml，在 mirrors 节点上，添加
 
@@ -1184,4 +1189,3 @@ mail.sender =
 2. 有时候默认的配置并不能满足我们的需求，需要做一些自定义配置，推荐先看一下`springboot`自动配置的源码，再做定制化处理
 
 3. 技术没有银弹，在做技术选型时不要过于迷信一种技术，适合自己的业务的技术才是最好的
-
