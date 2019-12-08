@@ -38,7 +38,7 @@ public class MailModel {
     }
 
     public void addFile(String filePath) {
-        String fileName = filePath.substring(filePath.lastIndexOf(File.separator));
+        String fileName = filePath.substring(filePath.lastIndexOf(File.separator) + 1);
         files.put(fileName, new File(filePath));
     }
 
