@@ -4,14 +4,11 @@ import com.zhaoguhong.baymax.mail.MailService;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@RunWith(SpringRunner.class)
 @SpringBootTest
 @Slf4j
 public class EmailTest {
@@ -21,7 +18,7 @@ public class EmailTest {
 
   private String toMail = "aaa@qq.com";
 
-  @Before
+  @BeforeEach
   public void init() {
 //    JavaMailSenderImpl sender = ContextHolder.getBean("mailSender");
 //    //设置邮箱主机,163邮箱为smtp.163.com，qq为smtp.qq.com

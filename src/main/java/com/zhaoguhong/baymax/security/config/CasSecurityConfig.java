@@ -101,7 +101,9 @@ public class CasSecurityConfig extends WebSecurityConfig {
   @Bean
   public SingleSignOutFilter singleSignOutFilter() {
     SingleSignOutFilter singleSignOutFilter = new SingleSignOutFilter();
-    singleSignOutFilter.setCasServerUrlPrefix(casProperties.getServerUrl());
+//    singleSignOutFilter.setCasServerUrlPrefix(casProperties.getServerUrl());
+    // ???
+    singleSignOutFilter.setLogoutCallbackPath(casProperties.getClientCasUrl());
     singleSignOutFilter.setIgnoreInitConfiguration(true);
     return singleSignOutFilter;
   }
