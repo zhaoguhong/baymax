@@ -753,7 +753,7 @@ public class MongoDbConfig {
    * 扩展自己的mogoTemplate
    */
   @Bean
-  public MyMongoTemplate mongoTemplate(MongoDbFactory mongoDbFactory,
+  public MyMongoTemplate mongoTemplate(MongoDatabaseFactory mongoDbFactory,
       MongoConverter converter) {
     return new MyMongoTemplate(mongoDbFactory, converter);
   }
