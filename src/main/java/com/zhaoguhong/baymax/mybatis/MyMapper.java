@@ -27,7 +27,7 @@ public interface MyMapper<T extends BaseEntity> extends Mapper<T> {
   default void deleteEntity(T entity) {
     entity.setUpdatedTime(new Date());
     entity.setUpdatedBy(ContextHolder.getLoginUserId());
-    entity.setIsDeleted(0);
+    entity.setIsDeleted(1);
     updateByPrimaryKey(entity);
   }
 

@@ -45,7 +45,7 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
   public void deleteEntity(T entity) {
     entity.setUpdatedTime(new Date());
     entity.setUpdatedBy(ContextHolder.getLoginUserId());
-    entity.setIsDeleted(0);
+    entity.setIsDeleted(1);
     save(entity);
   }
 
