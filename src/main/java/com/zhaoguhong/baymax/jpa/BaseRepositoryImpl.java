@@ -4,8 +4,8 @@ package com.zhaoguhong.baymax.jpa;
 import com.zhaoguhong.baymax.common.BaseEntity;
 import com.zhaoguhong.baymax.common.BaseUserEntity;
 import com.zhaoguhong.baymax.common.ContextHolder;
+import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import javax.persistence.EntityManager;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
@@ -26,7 +26,7 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
   @Override
   @Transactional
   public void saveEntity(T entity) {
-    entity.setCreatedTime(new Date());
+    entity.setCreatedTime(LocalDateTime.now());
     entity.setCreatedBy(ContextHolder.getLoginUserId());
     entity.setIsDeleted(0);
     save(entity);
@@ -35,7 +35,7 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
   @Override
   @Transactional
   public void updateEntity(T entity) {
-    entity.setUpdatedTime(new Date());
+    entity.setUpdatedTime(LocalDateTime.now());
     entity.setUpdatedBy(ContextHolder.getLoginUserId());
     save(entity);
   }
@@ -43,7 +43,7 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
   @Override
   @Transactional
   public void deleteEntity(T entity) {
-    entity.setUpdatedTime(new Date());
+    entity.setUpdatedTime(LocalDateTime.now());
     entity.setUpdatedBy(ContextHolder.getLoginUserId());
     entity.setIsDeleted(1);
     save(entity);

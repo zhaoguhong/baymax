@@ -29,16 +29,18 @@ public class DistributedLock {
   private RedisTemplate<String, String> redisTemplate;
 
   /**
-   * 获取锁，如果没有获取到，阻塞
+   * 默认最大等待时间（秒）
+   */
+  private static final long DEFAULT_LOCK_TIMEOUT_SECONDS = 60;
+
+  /**
+   * 获取锁，如果没有获取到，阻塞等待（默认最多等待30秒）
+   *
+   * @throws RuntimeException 如果超过默认超时时间仍未获取到锁
    */
   public void lock(String key) {
-    while (!tryLock(key)) {
-      try {
-        Thread.sleep(30);
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new RuntimeException("获取锁被中断", e);
-      }
+    if (!tryLock(key, DEFAULT_LOCK_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+      throw new RuntimeException("获取锁超时，key: " + key);
     }
   }
 

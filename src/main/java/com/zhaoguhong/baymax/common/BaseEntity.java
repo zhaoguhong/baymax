@@ -1,7 +1,7 @@
 package com.zhaoguhong.baymax.common;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -30,7 +30,7 @@ public abstract class BaseEntity implements Serializable {
   /**
    * 创建时间
    */
-  private Date createdTime;
+  private LocalDateTime createdTime;
   /**
    * 更新人
    */
@@ -38,7 +38,7 @@ public abstract class BaseEntity implements Serializable {
   /**
    * 更新时间
    */
-  private Date updatedTime;
+  private LocalDateTime updatedTime;
   /**
    * 是否删除
    */

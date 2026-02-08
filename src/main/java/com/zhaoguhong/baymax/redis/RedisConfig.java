@@ -23,8 +23,8 @@ public class RedisConfig {
    * 设置序列化方式
    */
   @Bean
-  public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
-    RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
+  public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
     redisTemplate.setConnectionFactory(redisConnectionFactory);
     redisTemplate.setKeySerializer(RedisSerializer.string());
     redisTemplate.setValueSerializer(jackson2JsonRedisSerializer());
