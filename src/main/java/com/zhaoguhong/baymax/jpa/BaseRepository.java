@@ -33,17 +33,17 @@ public interface BaseRepository<T extends BaseEntity> extends JpaRepository<T, L
   /**
    * 批量保存
    */
-  void saveEntites(Collection<T> entitys);
+  void saveEntities(Collection<T> entitys);
 
   /**
    * 批量更新
    */
-  void updateEntites(Collection<T> entitys);
+  void updateEntities(Collection<T> entitys);
 
   /**
    * 批量逻辑删除
    */
-  void deleteEntites(Collection<T> entitys);
+  void deleteEntities(Collection<T> entitys);
 
   /**
    * 根据id获取实体，会过滤掉逻辑删除的

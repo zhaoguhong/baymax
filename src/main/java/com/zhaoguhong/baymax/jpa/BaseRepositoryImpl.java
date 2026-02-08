@@ -51,32 +51,36 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
 
   @Override
   @Transactional
-  public void saveEntites(Collection<T> entitys) {
+  public void saveEntities(Collection<T> entitys) {
     entitys.forEach(entity -> saveEntity(entity));
   }
 
   @Override
   @Transactional
-  public void updateEntites(Collection<T> entitys) {
+  public void updateEntities(Collection<T> entitys) {
     entitys.forEach(entity -> updateEntity(entity));
   }
 
   @Override
   @Transactional
-  public void deleteEntites(Collection<T> entitys) {
+  public void deleteEntities(Collection<T> entitys) {
     entitys.forEach(entity -> deleteEntity(entity));
   }
 
   @Override
   public T getById(Long id) {
-    T entity = super.getOne(id);
-    return entity.getIsDeleted() == 1 ? null : entity;
+    T entity = findById(id).orElse(null);
+    if (entity == null || Integer.valueOf(1).equals(entity.getIsDeleted())) {
+      return null;
+    }
+    return entity;
   }
 
   @Override
   public <T extends BaseUserEntity> T findByIdAndUserId(Long id, Long userId) {
-    String jpql = "from " + getDomainClass().getName() + " where isDeleted = 0 and userId =:userId ";
+    String jpql = "from " + getDomainClass().getName() + " where isDeleted = 0 and id =:id and userId =:userId ";
     T entity = (T) entityManager.createQuery(jpql)
+        .setParameter("id", id)
         .setParameter("userId", userId).getSingleResult();
     return entity;
   }

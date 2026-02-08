@@ -31,20 +31,23 @@ public interface MyMapper<T extends BaseEntity> extends Mapper<T> {
     updateByPrimaryKey(entity);
   }
 
-  default void saveEntites(Collection<T> entitys) {
+  default void saveEntities(Collection<T> entitys) {
     entitys.forEach(entity -> saveEntity(entity));
   }
 
-  default void updateEntites(Collection<T> entitys) {
+  default void updateEntities(Collection<T> entitys) {
     entitys.forEach(entity -> updateEntity(entity));
   }
 
-  default void deleteEntites(Collection<T> entitys) {
+  default void deleteEntities(Collection<T> entitys) {
     entitys.forEach(entity -> deleteEntity(entity));
   }
 
   default T getById(Long id) {
     T entity = selectByPrimaryKey(id);
-    return entity.getIsDeleted() == 1 ? null : entity;
+    if (entity == null || Integer.valueOf(1).equals(entity.getIsDeleted())) {
+      return null;
+    }
+    return entity;
   }
 }

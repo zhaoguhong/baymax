@@ -49,7 +49,7 @@ public class MailServiceImpl implements MailService {
       }
       mailSender.send(message);
     } catch (MessagingException e) {
-      log.error("发送邮件异常：{}", e);
+      log.error("发送邮件异常", e);
     }
   }
 

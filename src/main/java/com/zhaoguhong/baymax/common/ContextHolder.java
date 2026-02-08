@@ -32,14 +32,22 @@ public class ContextHolder implements ApplicationContextAware {
    * 获取当前线程的request
    */
   public static HttpServletRequest getRequest() {
-    return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+    ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+    if (attributes == null) {
+      throw new IllegalStateException("当前线程不在 Web 请求上下文中，无法获取 HttpServletRequest");
+    }
+    return attributes.getRequest();
   }
 
   /**
    * 获取当前线程的response
    */
   public static HttpServletResponse getResponse() {
-    return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
+    ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+    if (attributes == null) {
+      throw new IllegalStateException("当前线程不在 Web 请求上下文中，无法获取 HttpServletResponse");
+    }
+    return attributes.getResponse();
   }
 
   /**
