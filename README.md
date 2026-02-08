@@ -287,46 +287,6 @@ public class GlobalControllerExceptionHandler {
     return ResponseResult.unLogin();
   }
 ```
-### 异常持久化
-
-对于未知的异常，保存到数据库，方便后续排错
-
-需要说明是的，如果项目访问量比较大，推荐用 ELK 这种成熟的日志分析系统，不推荐日志保存到关系型数据库
-
-```java
-  @Autowired
-  private ExceptionLogMapper exceptionLogMapper;
-  /**
-   * 处理未知的错误
-   */
-  @ExceptionHandler(value = {Exception.class})
-  public ResponseResult<Long> handleunknownException(Exception ex) {
-    ExceptionLog log = new ExceptionLog(new Date(), ExceptionUtils.getStackTrace(ex));
-    exceptionLogMapper.insert(log);
-    ResponseResult<Long> result = ResponseResult.unknownError("服务器异常:" + log.getId());
-    result.setData(log.getId());
-    return result;
-  }
-```
-### 异常日志接口
-对外开一个异常日志查询接口`/anon/exception/{异常日志id}`，方便查询
-
-```java
-@RestController
-@RequestMapping("/anon/exception")
-public class ExceptionController {
-
-  @Autowired
-  private ExceptionLogMapper exceptionLogMapper;
-
-  @GetMapping(value = "/{id}")
-  public String getDemo(@PathVariable(value = "id") Long id) {
-    return exceptionLogMapper.selectByPrimaryKey(id).getException();
-  }
-
-} 
-```
-
 ## <span id="validation">数据校验</span>
 [JSR 303 ](https://www.ibm.com/developerworks/cn/java/j-lo-jsr303/)定义了一系列的 Bean Validation 规范，Hibernate Validator 是 Bean Validation 的实现，并进行了扩展
 

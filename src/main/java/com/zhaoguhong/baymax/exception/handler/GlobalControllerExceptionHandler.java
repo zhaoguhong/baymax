@@ -4,14 +4,10 @@ package com.zhaoguhong.baymax.exception.handler;
 import com.zhaoguhong.baymax.common.ResponseResult;
 import com.zhaoguhong.baymax.exception.BusinessException;
 import com.zhaoguhong.baymax.exception.NoneLoginException;
-import com.zhaoguhong.baymax.exception.dao.ExceptionLogMapper;
-import com.zhaoguhong.baymax.exception.entity.ExceptionLog;
-import java.util.Date;
 import java.util.List;
 import java.util.StringJoiner;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
@@ -22,11 +18,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 /**
  * 全局异常处理
  */
+@Slf4j
 @RestControllerAdvice
 public class GlobalControllerExceptionHandler {
-
-  @Autowired
-  private ExceptionLogMapper exceptionLogMapper;
 
   /**
    * 业务异常
@@ -71,12 +65,9 @@ public class GlobalControllerExceptionHandler {
    * 处理未知的错误
    */
   @ExceptionHandler(value = {Exception.class})
-  public ResponseResult<Long> handleunknownException(Exception ex) {
-    ExceptionLog log = new ExceptionLog(new Date(), ExceptionUtils.getStackTrace(ex));
-    exceptionLogMapper.insert(log);
-    ResponseResult<Long> result = ResponseResult.unknownError("服务器异常:" + log.getId());
-    result.setData(log.getId());
-    return result;
+  public ResponseResult<?> handleunknownException(Exception ex) {
+    log.error("服务器异常", ex);
+    return ResponseResult.unknownError("服务器异常");
   }
 
 }
