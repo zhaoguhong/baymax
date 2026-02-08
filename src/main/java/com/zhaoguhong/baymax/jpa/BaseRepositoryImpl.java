@@ -51,20 +51,20 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
 
   @Override
   @Transactional
-  public void saveEntities(Collection<T> entitys) {
-    entitys.forEach(entity -> saveEntity(entity));
+  public void saveEntities(Collection<T> entities) {
+    entities.forEach(entity -> saveEntity(entity));
   }
 
   @Override
   @Transactional
-  public void updateEntities(Collection<T> entitys) {
-    entitys.forEach(entity -> updateEntity(entity));
+  public void updateEntities(Collection<T> entities) {
+    entities.forEach(entity -> updateEntity(entity));
   }
 
   @Override
   @Transactional
-  public void deleteEntities(Collection<T> entitys) {
-    entitys.forEach(entity -> deleteEntity(entity));
+  public void deleteEntities(Collection<T> entities) {
+    entities.forEach(entity -> deleteEntity(entity));
   }
 
   @Override

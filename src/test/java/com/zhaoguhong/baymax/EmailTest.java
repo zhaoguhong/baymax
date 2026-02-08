@@ -33,7 +33,7 @@ public class EmailTest {
    */
   @Test
   public void testSimpleMail() {
-    mailService.sendSimleMail(toMail, "测试", "测试内容");
+    mailService.sendSimpleMail(toMail, "测试", "测试内容");
   }
 
   @Test

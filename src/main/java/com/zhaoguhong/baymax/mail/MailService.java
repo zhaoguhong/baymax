@@ -23,7 +23,7 @@ public interface MailService {
    * @param subject 邮件标题
    * @param content 邮件内容
    */
-  void sendSimleMail(String to, String subject, String content);
+  void sendSimpleMail(String to, String subject, String content);
 
   /**
    * 发送html格式的邮件

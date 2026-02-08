@@ -31,16 +31,16 @@ public interface MyMapper<T extends BaseEntity> extends Mapper<T> {
     updateByPrimaryKey(entity);
   }
 
-  default void saveEntities(Collection<T> entitys) {
-    entitys.forEach(entity -> saveEntity(entity));
+  default void saveEntities(Collection<T> entities) {
+    entities.forEach(entity -> saveEntity(entity));
   }
 
-  default void updateEntities(Collection<T> entitys) {
-    entitys.forEach(entity -> updateEntity(entity));
+  default void updateEntities(Collection<T> entities) {
+    entities.forEach(entity -> updateEntity(entity));
   }
 
-  default void deleteEntities(Collection<T> entitys) {
-    entitys.forEach(entity -> deleteEntity(entity));
+  default void deleteEntities(Collection<T> entities) {
+    entities.forEach(entity -> deleteEntity(entity));
   }
 
   default T getById(Long id) {

@@ -1,4 +1,4 @@
-package com.zhaoguhong.baymax.security.hander;
+package com.zhaoguhong.baymax.security.handler;
 
 import com.zhaoguhong.baymax.common.ResponseResult;
 import com.zhaoguhong.baymax.util.RequestUtil;

@@ -9,18 +9,15 @@ import org.apache.commons.lang3.StringUtils;
 public class SqlUtils {
 
   /**
-   * 拼接查询数量sql
+   * 拼接查询数量sql，使用包装方式以支持子查询
    */
   public static String getCountSql(String sql) {
-    int fromIndex = StringUtils.indexOfIgnoreCase(sql, "from");
-    if (fromIndex > StringUtils.INDEX_NOT_FOUND) {
-      sql = sql.substring(fromIndex);
-    }
+    // 去除末尾的 order by 子句以优化性能
     int orderByIndex = StringUtils.indexOfIgnoreCase(sql, "order by");
     if (orderByIndex > StringUtils.INDEX_NOT_FOUND) {
       sql = sql.substring(0, orderByIndex);
     }
-    return "select count(*) " + sql;
+    return "select count(*) from (" + sql + ") t";
   }
 
   /**

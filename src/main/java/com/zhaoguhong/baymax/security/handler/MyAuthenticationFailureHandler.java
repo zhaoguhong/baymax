@@ -1,4 +1,4 @@
-package com.zhaoguhong.baymax.security.hander;
+package com.zhaoguhong.baymax.security.handler;
 
 import com.zhaoguhong.baymax.common.ResponseResult;
 import com.zhaoguhong.baymax.util.RequestUtil;
@@ -14,9 +14,9 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
  * @author guhong
  * @date 2019/8/25
  */
-public class MyAuthenctiationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
+public class MyAuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
-  public MyAuthenctiationFailureHandler(String loginFormUrl) {
+  public MyAuthenticationFailureHandler(String loginFormUrl) {
     super(loginFormUrl);
   }
 

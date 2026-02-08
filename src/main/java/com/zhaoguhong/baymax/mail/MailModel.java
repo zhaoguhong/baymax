@@ -21,7 +21,7 @@ public class MailModel {
     /**
      * 邮件内容
      */
-    private String Content;
+    private String content;
 
     /**
      * html格式邮件内容

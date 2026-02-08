@@ -1,9 +1,5 @@
 package com.zhaoguhong.baymax.springcache;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +28,9 @@ public class SpringCacheConfig {
   @Autowired
   private CacheProperties cacheProperties;
 
+  @Autowired
+  private Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer;
+
   @Bean
   public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
     RedisCacheManagerBuilder builder = RedisCacheManager
@@ -48,9 +47,9 @@ public class SpringCacheConfig {
     Redis redisProperties = this.cacheProperties.getRedis();
     org.springframework.data.redis.cache.RedisCacheConfiguration config = org.springframework.data.redis.cache.RedisCacheConfiguration
         .defaultCacheConfig();
-    // 修改序列化为json
+    // 修改序列化为json，复用 RedisConfig 中定义的安全序列化器
     config = config.serializeValuesWith(RedisSerializationContext.SerializationPair
-        .fromSerializer(jackson2JsonRedisSerializer()));
+        .fromSerializer(jackson2JsonRedisSerializer));
     if (redisProperties.getTimeToLive() != null) {
       config = config.entryTtl(redisProperties.getTimeToLive());
     }
@@ -65,18 +64,6 @@ public class SpringCacheConfig {
       config = config.disableKeyPrefix();
     }
     return config;
-  }
-
-  public Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer() {
-    System.out.println(cacheProperties);
-    ObjectMapper om = new ObjectMapper();
-    om.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-    // 将类名称序列化到json串中
-    om.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL);
-    Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer =
-        new Jackson2JsonRedisSerializer<Object>(Object.class);
-    jackson2JsonRedisSerializer.setObjectMapper(om);
-    return jackson2JsonRedisSerializer;
   }
 
 }

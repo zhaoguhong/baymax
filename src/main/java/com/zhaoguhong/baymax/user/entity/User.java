@@ -6,6 +6,7 @@ import java.util.HashSet;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +17,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Entity
 @ToString(callSuper = true)
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class User extends BaseEntity implements UserDetails {
 
   /**

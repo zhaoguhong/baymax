@@ -1,9 +1,9 @@
 package com.zhaoguhong.baymax.security.config;
 
-import com.zhaoguhong.baymax.security.hander.MyAuthenctiationFailureHandler;
-import com.zhaoguhong.baymax.security.hander.MyAuthenticationSuccessHandler;
-import com.zhaoguhong.baymax.security.hander.MyLoginUrlAuthenticationEntryPoint;
-import com.zhaoguhong.baymax.security.hander.MyLogoutSuccessHandler;
+import com.zhaoguhong.baymax.security.handler.MyAuthenticationFailureHandler;
+import com.zhaoguhong.baymax.security.handler.MyAuthenticationSuccessHandler;
+import com.zhaoguhong.baymax.security.handler.MyLoginUrlAuthenticationEntryPoint;
+import com.zhaoguhong.baymax.security.handler.MyLogoutSuccessHandler;
 import com.zhaoguhong.baymax.swagger.SwaggerConfig;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +55,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         // 自定义登录页
         .loginPage(securityProperties.getLoginPage())
         .successHandler(myAuthenticationSuccessHandler)
-        .failureHandler(new MyAuthenctiationFailureHandler(securityProperties.getLoginPage()))
+        .failureHandler(new MyAuthenticationFailureHandler(securityProperties.getLoginPage()))
         // 自定义登录请求路径
         .loginProcessingUrl(securityProperties.getLoginProcessingUrl())
         .permitAll()

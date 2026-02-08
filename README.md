@@ -1094,7 +1094,7 @@ mail.sender =
    // 根据相关配置发送邮件
   void sendMail(MailModel mailModel);
    // 发送简单的邮件
-  void sendSimleMail(String to, String subject, String content);
+  void sendSimpleMail(String to, String subject, String content);
    // 发送html格式的邮件
   void sendHtmlMail(String to, String subject, String content);
    // 发送带附件的邮件
