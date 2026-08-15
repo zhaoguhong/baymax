@@ -32,12 +32,12 @@ public class MyPageInterceptor implements Interceptor {
     Object parameter = args[1];
     Page<?> page = null;
 
-    if (parameter instanceof Page) {
-      page = (Page<?>) parameter;
-    } else if (parameter instanceof Map) {
-      for (Object value : ((Map<String, Object>) parameter).values()) {
-        if (value instanceof Page) {
-          page = (Page) value;
+    if (parameter instanceof Page<?> parameterPage) {
+      page = parameterPage;
+    } else if (parameter instanceof Map<?, ?> parameterMap) {
+      for (Object value : parameterMap.values()) {
+        if (value instanceof Page<?> parameterPage) {
+          page = parameterPage;
           break;
         }
       }
@@ -53,11 +53,16 @@ public class MyPageInterceptor implements Interceptor {
     Object value = invocation.proceed();
 
     if (page != null) {
-      page.setEntityList((List) value);
-      page.setTotalCount(pageRowBounds.getTotal().intValue());
+      setEntityList(page, value);
+      page.setTotalCount(Math.toIntExact(pageRowBounds.getTotal()));
     }
 
     return value;
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T> void setEntityList(Page<T> page, Object value) {
+    page.setEntityList((List<T>) value);
   }
 
   @Override

@@ -1,6 +1,7 @@
 package com.zhaoguhong.baymax;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -16,11 +17,14 @@ public class RedisTest {
 
   @Test
   public void testRedisTemplate() {
-    redisTemplate.opsForValue().set("test", "testValue");
-    Assertions.assertEquals(redisTemplate.opsForValue().get("test"),"testValue");
-    redisTemplate.delete("test");
-    Assertions.assertEquals(redisTemplate.opsForValue().get("test"),null);
+    String key = "baymax:integration:" + UUID.randomUUID();
+    try {
+      redisTemplate.opsForValue().set(key, "testValue");
+      Assertions.assertEquals("testValue", redisTemplate.opsForValue().get(key));
+    } finally {
+      redisTemplate.delete(key);
+    }
+    Assertions.assertNull(redisTemplate.opsForValue().get(key));
   }
 
 }
-

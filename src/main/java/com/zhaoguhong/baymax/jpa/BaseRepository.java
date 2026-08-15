@@ -1,7 +1,6 @@
 package com.zhaoguhong.baymax.jpa;
 
 import com.zhaoguhong.baymax.common.BaseEntity;
-import com.zhaoguhong.baymax.common.BaseUserEntity;
 import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -48,17 +47,17 @@ public interface BaseRepository<T extends BaseEntity> extends JpaRepository<T, L
   /**
    * 根据id获取实体，会过滤掉逻辑删除的
    */
-  T getById(Long id);
+  T findActiveById(Long id);
 
   /**
    * 根据id获取实体，会限制userId是当前用户，并且过滤掉逻辑删除的
    */
-  <T extends BaseUserEntity> T findByIdForLoginUser(Long id);
+  T findByIdForLoginUser(Long id);
 
   /**
    * 根据id和用户id获取实体，并且过滤掉逻辑删除的
    */
-  <T extends BaseUserEntity> T findByIdAndUserId(Long id, Long userId);
+  T findByIdAndUserId(Long id, Long userId);
 
   /**
    * 获取全部实体，会过滤掉逻辑删除的

@@ -6,9 +6,9 @@ import com.zhaoguhong.baymax.util.SqlUtils;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -46,9 +46,10 @@ public class JpaDao {
   }
 
 
+  @SuppressWarnings("unchecked")
   public <T> Page<T> find(Page<T> page, String hql, Object... parameters) {
     Query query = createQuery(hql, parameters);
-    long totalCount = findUnique(SqlUtils.getCountSql(hql), parameters);
+    long totalCount = findUnique(SqlUtils.getCountHql(hql), parameters);
     page.setTotalCount((int) totalCount);
     query.setFirstResult(page.getFirstEntityIndex());
     query.setMaxResults(page.getPageSize());
@@ -56,9 +57,10 @@ public class JpaDao {
     return page;
   }
 
+  @SuppressWarnings("unchecked")
   public <T> Page<T> find(Page<T> page, String hql, Map<String, ?> parameters) {
     Query query = createQuery(hql, parameters);
-    long totalCount = findUnique(SqlUtils.getCountSql(hql), parameters);
+    long totalCount = findUnique(SqlUtils.getCountHql(hql), parameters);
     page.setTotalCount((int) totalCount);
     query.setFirstResult(page.getFirstEntityIndex());
     query.setMaxResults(page.getPageSize());
@@ -66,10 +68,12 @@ public class JpaDao {
     return page;
   }
 
+  @SuppressWarnings("unchecked")
   public <T> T findUnique(String hql, Object... parameters) {
     return (T) createQuery(hql, parameters).getSingleResult();
   }
 
+  @SuppressWarnings("unchecked")
   public <T> T findUnique(String hql, Map<String, ?> parameters) {
     return (T) createQuery(hql, parameters).getSingleResult();
   }

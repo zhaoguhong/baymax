@@ -6,10 +6,12 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
+@EnabledIfEnvironmentVariable(named = "RUN_MAIL_TESTS", matches = "true")
 @Slf4j
 public class EmailTest {
 
@@ -66,4 +68,3 @@ public class EmailTest {
   }
 
 }
-

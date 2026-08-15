@@ -5,6 +5,7 @@ import com.zhaoguhong.baymax.util.SqlUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
@@ -40,11 +41,11 @@ public class JdbcDao {
   }
 
   public List<Map<String, Object>> find(String sql, Object... args) {
-    return getJdbcTemplate().query(sql, args, new ColumnMapRowMapper());
+    return getJdbcTemplate().query(sql, new ColumnMapRowMapper(), args);
   }
 
   public <T> List<T> find(String sql, Object[] args, RowMapper<T> rowMapper) {
-    return getJdbcTemplate().query(sql, args, rowMapper);
+    return getJdbcTemplate().query(sql, rowMapper, args);
   }
 
   public <T> List<T> find(String sql, RowMapper<T> rowMapper, Object... args) {
@@ -92,7 +93,7 @@ public class JdbcDao {
   }
   
   public Integer queryForInt(String sql, Object... args) {
-    Integer result = getJdbcTemplate().queryForObject(sql, args, Integer.class);
+    Integer result = getJdbcTemplate().queryForObject(sql, Integer.class, args);
     return result;
   }
 
@@ -102,7 +103,7 @@ public class JdbcDao {
   }
 
   public Long queryForLong(String sql, Object... args) {
-    Long result = getJdbcTemplate().queryForObject(sql, args, Long.class);
+    Long result = getJdbcTemplate().queryForObject(sql, Long.class, args);
     return result;
   }
 
@@ -127,7 +128,11 @@ public class JdbcDao {
   }
 
   public Page<Map<String, Object>> find(Page<Map<String, Object>> page, String sql, Map<String, ?> parameters) {
-    return find(page,sql,parameters,null);
+    String querySql = SqlUtils.getMysqlPageSql(sql, page.getPageNo(), page.getPageSize());
+    Map<String, ?> queryParameters = parameters == null ? Collections.emptyMap() : parameters;
+    page.setEntityList(find(querySql, queryParameters));
+    page.setTotalCount(queryForInt(SqlUtils.getCountSql(sql), queryParameters));
+    return page;
   }
 
   /**
@@ -137,20 +142,14 @@ public class JdbcDao {
    * @param parameters  参数
    * @param mapper  映射mapper
    */
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  public <T> Page<T> find(Page<T> page, String sql, Map<String, ?> parameters, RowMapper<?> mapper) {
+  public <T> Page<T> find(
+      Page<T> page, String sql, Map<String, ?> parameters, RowMapper<T> mapper) {
     String querySql = SqlUtils.getMysqlPageSql(sql, page.getPageNo(), page.getPageSize());
-    if(parameters == null){
-      parameters = Collections.emptyMap();
-    }
-    if (mapper == null) {
-      page.setEntityList(((List) this.find(querySql, parameters)));
-    } else {
-      page.setEntityList((List) this.find(querySql, parameters, mapper));
-    }
+    Map<String, ?> queryParameters = parameters == null ? Collections.emptyMap() : parameters;
+    page.setEntityList(find(querySql, queryParameters, Objects.requireNonNull(mapper)));
 
     String countSql = SqlUtils.getCountSql(sql);
-    page.setTotalCount(this.queryForInt(countSql, parameters));
+    page.setTotalCount(queryForInt(countSql, queryParameters));
     return page;
   }
 
@@ -165,11 +164,7 @@ public class JdbcDao {
    */
   public <T> Page<T> find(Page<T> page, String sql, RowMapper<T> mapper, Object... args) {
     String querySql = SqlUtils.getMysqlPageSql(sql, page.getPageNo(), page.getPageSize());
-    if (mapper == null) {
-      page.setEntityList(((List) this.find(querySql, args)));
-    } else {
-      page.setEntityList((List) this.find(querySql, args, mapper));
-    }
+    page.setEntityList(find(querySql, Objects.requireNonNull(mapper), args));
     String countSql = SqlUtils.getCountSql(sql);
     page.setTotalCount(this.queryForInt(countSql, args));
     return page;

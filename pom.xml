@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.7.18</version>
+    <version>3.5.16</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>com.zhaoguhong</groupId>
@@ -16,31 +16,29 @@
   <description>spring boot 最佳实践</description>
 
   <properties>
-    <java.version>1.8</java.version>
+    <java.version>17</java.version>
+    <maven.compiler.release>17</maven.compiler.release>
+    <druid.version>1.2.28</druid.version>
+    <mybatis.version>3.5.19</mybatis.version>
+    <pagehelper.version>6.1.1</pagehelper.version>
+    <springdoc.version>2.9.0</springdoc.version>
+    <tk-mybatis.version>5.0.2</tk-mybatis.version>
   </properties>
-
-  <!-- 配置远程仓库 -->
-  <repositories>
-    <repository>
-      <id>alimaven</id>
-      <name>aliyun maven</name>
-      <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
-      <releases>
-        <enabled>true</enabled>
-        <updatePolicy>daily</updatePolicy>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-        <checksumPolicy>warn</checksumPolicy>
-      </snapshots>
-      <layout>default</layout>
-    </repository>
-  </repositories>
 
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-aop</artifactId>
     </dependency>
 
     <dependency>
@@ -104,40 +102,34 @@
 
     <dependency>
       <groupId>com.alibaba</groupId>
-      <artifactId>druid-spring-boot-starter</artifactId>
-      <version>1.2.24</version>
+      <artifactId>druid-spring-boot-3-starter</artifactId>
+      <version>${druid.version}</version>
     </dependency>
 
-    <!--mybatis-->
+    <!-- TK Mapper 5 自带 Spring Boot 3 的 MyBatis 自动配置。 -->
     <dependency>
-      <groupId>org.mybatis.spring.boot</groupId>
-      <artifactId>mybatis-spring-boot-starter</artifactId>
-      <version>2.3.2</version>
+      <groupId>org.mybatis</groupId>
+      <artifactId>mybatis</artifactId>
+      <version>${mybatis.version}</version>
     </dependency>
 
-    <!--通用mapper-->
     <dependency>
       <groupId>tk.mybatis</groupId>
       <artifactId>mapper-spring-boot-starter</artifactId>
-      <version>2.1.5</version>
+      <version>${tk-mybatis.version}</version>
     </dependency>
 
-    <!--pagehelper-->
+    <!-- PageHelper Starter 固定依赖官方 MyBatis Starter，会与 TK Mapper 的自动配置冲突。 -->
     <dependency>
       <groupId>com.github.pagehelper</groupId>
-      <artifactId>pagehelper-spring-boot-starter</artifactId>
-      <version>1.4.3</version>
+      <artifactId>pagehelper</artifactId>
+      <version>${pagehelper.version}</version>
     </dependency>
 
     <dependency>
-      <groupId>io.springfox</groupId>
-      <artifactId>springfox-swagger2</artifactId>
-      <version>2.7.0</version>
-    </dependency>
-    <dependency>
-      <groupId>io.springfox</groupId>
-      <artifactId>springfox-swagger-ui</artifactId>
-      <version>2.7.0</version>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>${springdoc.version}</version>
     </dependency>
 
     <dependency>
@@ -149,21 +141,12 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
+      <optional>true</optional>
     </dependency>
 
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <version>32.0.0-jre</version>
-    </dependency>
-    <dependency>
-      <groupId>jakarta.validation</groupId>
-      <artifactId>jakarta.validation-api</artifactId>
     </dependency>
 
   </dependencies>
@@ -173,6 +156,25 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-java</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>[17,)</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
 

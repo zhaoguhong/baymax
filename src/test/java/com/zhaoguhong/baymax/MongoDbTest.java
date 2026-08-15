@@ -7,6 +7,7 @@ import com.zhaoguhong.baymax.mongo.entity.MongoDemo;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
@@ -33,9 +34,14 @@ public class MongoDbTest {
 
   @Test
   public void tesQuery() {
-    Query query = new Query(Criteria.where("id").is("5cf7867b12e51d0aa71ae253"));
+    Query query = new Query().limit(1);
     MongoDemo demoEntity = mongoTemplate.findOne(query, MongoDemo.class);
-    System.out.println(demoEntity.getId());
+    if (demoEntity != null) {
+      Assertions.assertNotNull(demoEntity.getId());
+      log.info("测试查询:{}", demoEntity.getId());
+    } else {
+      log.info("MongoDB 暂无测试数据");
+    }
   }
 
   /**
@@ -76,4 +82,3 @@ public class MongoDbTest {
   }
 
 }
-

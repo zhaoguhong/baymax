@@ -2,12 +2,11 @@ package com.zhaoguhong.baymax.jpa;
 
 
 import com.zhaoguhong.baymax.common.BaseEntity;
-import com.zhaoguhong.baymax.common.BaseUserEntity;
 import com.zhaoguhong.baymax.common.ContextHolder;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +16,7 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
 
   private final EntityManager entityManager;
 
-  BaseRepositoryImpl(JpaEntityInformation<T, Long> entityInformation,
+  public BaseRepositoryImpl(JpaEntityInformation<T, Long> entityInformation,
       EntityManager entityManager) {
     super(entityInformation, entityManager);
     this.entityManager = entityManager;
@@ -68,7 +67,7 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
   }
 
   @Override
-  public T getById(Long id) {
+  public T findActiveById(Long id) {
     T entity = findById(id).orElse(null);
     if (entity == null || Integer.valueOf(1).equals(entity.getIsDeleted())) {
       return null;
@@ -77,22 +76,21 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
   }
 
   @Override
-  public <T extends BaseUserEntity> T findByIdAndUserId(Long id, Long userId) {
+  public T findByIdAndUserId(Long id, Long userId) {
     String jpql = "from " + getDomainClass().getName() + " where isDeleted = 0 and id =:id and userId =:userId ";
-    T entity = (T) entityManager.createQuery(jpql)
+    return entityManager.createQuery(jpql, getDomainClass())
         .setParameter("id", id)
         .setParameter("userId", userId).getSingleResult();
-    return entity;
   }
 
   @Override
-  public <T extends BaseUserEntity> T findByIdForLoginUser(Long id) {
+  public T findByIdForLoginUser(Long id) {
     return findByIdAndUserId(id, ContextHolder.getRequiredLoginUserId());
   }
 
   @Override
   public List<T> getAll() {
     String jpql = "from " + getDomainClass().getName() + " where isDeleted = 0";
-    return entityManager.createQuery(jpql).getResultList();
+    return entityManager.createQuery(jpql, getDomainClass()).getResultList();
   }
 }

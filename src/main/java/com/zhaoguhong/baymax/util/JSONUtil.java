@@ -73,9 +73,8 @@ public class JSONUtil {
   public static Map<String, Object> toMap(String json) {
     try {
       JavaType javaType = MAPPER
-          .getTypeFactory().constructParametrizedType(LinkedHashMap.class, Map.class,
-              new Class[] {String.class, Object.class});
-      return (Map<String, Object>) MAPPER.readValue(json, javaType);
+          .getTypeFactory().constructMapType(LinkedHashMap.class, String.class, Object.class);
+      return MAPPER.readValue(json, javaType);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -85,7 +84,7 @@ public class JSONUtil {
     try {
       JavaType javaType = MAPPER.getTypeFactory()
           .constructCollectionType(List.class, clazz);
-      return (List<T>) MAPPER.readValue(json, javaType);
+      return MAPPER.readValue(json, javaType);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

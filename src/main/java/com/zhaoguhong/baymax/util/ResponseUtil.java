@@ -2,7 +2,7 @@ package com.zhaoguhong.baymax.util;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 /**

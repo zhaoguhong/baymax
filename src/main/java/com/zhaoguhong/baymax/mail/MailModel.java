@@ -1,7 +1,7 @@
 package com.zhaoguhong.baymax.mail;
 
-import com.google.common.collect.Maps;
 import java.io.File;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.Data;
 
@@ -31,7 +31,7 @@ public class MailModel {
     /**
      * html格式邮件内容
      */
-    private Map<String, File> files = Maps.newLinkedHashMap();
+    private Map<String, File> files = new LinkedHashMap<>();
 
     public void addFile(File file) {
         addFile(file.getPath());

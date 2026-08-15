@@ -54,7 +54,7 @@ public class DistributedLock {
     RedisConnection conn = factory.getConnection();
     try {
       //key不存在则set，并设置超时时间
-      Boolean result = conn.set(key.getBytes(StandardCharsets.UTF_8),
+      Boolean result = conn.stringCommands().set(key.getBytes(StandardCharsets.UTF_8),
           lockValue.getBytes(StandardCharsets.UTF_8),
           Expiration.from(60, TimeUnit.SECONDS), RedisStringCommands.SetOption.SET_IF_ABSENT);
       if (result != null && result) {

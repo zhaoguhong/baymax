@@ -1,39 +1,44 @@
 package com.zhaoguhong.baymax.mybatis.config;
 
-import com.github.pagehelper.autoconfigure.PageHelperAutoConfiguration;
+import com.github.pagehelper.PageInterceptor;
 import com.zhaoguhong.baymax.mybatis.interceptor.MyPageInterceptor;
-import java.util.List;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Properties;
+import org.apache.ibatis.plugin.Interceptor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 /**
+ * MyBatis、TK Mapper 与 PageHelper 的组合配置。
+ *
  * @author guhong
  * @date 2019/5/13
  */
 @Configuration
-// 设置mapper扫描的包
 @tk.mybatis.spring.annotation.MapperScan(basePackages = "com.zhaoguhong.baymax.**.dao")
-@Slf4j
 public class MybatisConfig {
 
-  @Autowired
-  private List<SqlSessionFactory> sqlSessionFactoryList;
-
   /**
-   * 添加自定义的分页插件，pageHelper 的分页插件PageInterceptor是用@PostConstruct添加的，自定义的应该在其后面添加
-   * 真正执行时顺序是反过来，先执行MyPageInterceptor，再执行 PageInterceptor
-   *
-   * 所以要保证 PageHelperAutoConfiguration 先执行
+   * 先注册 PageHelper。MyBatis 以反向顺序执行插件，因此后注册的 MyPageInterceptor
+   * 会先把自定义 Page 转换成 PageRowBounds，再由 PageHelper 生成分页 SQL。
    */
-  @Autowired
-  public void addPageInterceptor(PageHelperAutoConfiguration pageHelperAutoConfiguration) {
-    MyPageInterceptor interceptor = new MyPageInterceptor();
-    for (SqlSessionFactory sqlSessionFactory : sqlSessionFactoryList) {
-      sqlSessionFactory.getConfiguration().addInterceptor(interceptor);
-      log.info("注册自定义分页插件成功");
-    }
+  @Bean
+  @Order(0)
+  public Interceptor pageInterceptor(
+      @Value("${pagehelper.helper-dialect:mysql}") String helperDialect,
+      @Value("${pagehelper.reasonable:true}") boolean reasonable) {
+    Properties properties = new Properties();
+    properties.setProperty("helperDialect", helperDialect);
+    properties.setProperty("reasonable", Boolean.toString(reasonable));
+    PageInterceptor interceptor = new PageInterceptor();
+    interceptor.setProperties(properties);
+    return interceptor;
   }
 
+  @Bean
+  @Order(1)
+  public Interceptor myPageInterceptor() {
+    return new MyPageInterceptor();
+  }
 }

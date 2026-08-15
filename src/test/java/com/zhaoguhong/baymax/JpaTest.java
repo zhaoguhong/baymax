@@ -6,9 +6,9 @@ import com.zhaoguhong.baymax.demo.repository.DemoRepository;
 import com.zhaoguhong.baymax.jpa.JpaDao;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Resource;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
+import jakarta.annotation.Resource;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,7 +37,7 @@ public class JpaTest {
     demo.setTitle("test");
     demoRepository.saveEntity(demo);
     log.info("测试新增:" + demo);
-    log.info("测试getOne:" + demoRepository.getOne(1L));
+    log.info("测试getReferenceById:" + demoRepository.getReferenceById(1L));
     log.info("测试findByUserName:" + demoRepository.findByUserName("baymax"));
   }
 
@@ -54,10 +54,9 @@ public class JpaTest {
     log.info("测试find命名参数:" + jpaDao.find(jpql, param));
 
     jpql = "from Demo ";
-    Page page = new Page<Demo>();
+    Page<Demo> page = new Page<>();
     log.info("测试分页:" + jpaDao.find(page, jpql, new HashMap<>()));
   }
 
 
 }
-

@@ -44,9 +44,6 @@ public class RedisConfig {
         .allowIfBaseType("java.lang.")
         .build();
     om.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL);
-    Jackson2JsonRedisSerializer<Object> jackson2JsonRedisSerializer =
-        new Jackson2JsonRedisSerializer<Object>(Object.class);
-    jackson2JsonRedisSerializer.setObjectMapper(om);
-    return jackson2JsonRedisSerializer;
+    return new Jackson2JsonRedisSerializer<>(om, Object.class);
   }
 }

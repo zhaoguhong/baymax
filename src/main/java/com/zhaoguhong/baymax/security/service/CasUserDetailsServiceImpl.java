@@ -5,7 +5,7 @@ import com.zhaoguhong.baymax.user.entity.User;
 import com.zhaoguhong.baymax.user.entity.repository.UserRepository;
 import java.security.Principal;
 import lombok.extern.slf4j.Slf4j;
-import org.jasig.cas.client.validation.Assertion;
+import org.apereo.cas.client.validation.Assertion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.cas.userdetails.AbstractCasAssertionUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;

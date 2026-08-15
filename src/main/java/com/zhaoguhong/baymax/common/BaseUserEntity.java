@@ -1,6 +1,6 @@
 package com.zhaoguhong.baymax.common;
 
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.MappedSuperclass;
 import lombok.ToString;
 
 /**

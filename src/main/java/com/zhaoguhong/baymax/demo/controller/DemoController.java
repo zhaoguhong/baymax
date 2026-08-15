@@ -4,10 +4,10 @@ import com.zhaoguhong.baymax.common.ResponseResult;
 import com.zhaoguhong.baymax.demo.dao.DemoMapper;
 import com.zhaoguhong.baymax.demo.entity.Demo;
 import com.zhaoguhong.baymax.log.LogAspect;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/test")
 @Slf4j
-@Api(tags = "测试接口")
+@Tag(name = "测试接口")
 public class DemoController {
 
   @Autowired
@@ -52,7 +52,7 @@ public class DemoController {
    * 新增
    */
   @PostMapping("/add")
-  @ApiOperation(value = "新增 demo")
+  @Operation(summary = "新增 demo")
   public ResponseResult<String> add(@RequestBody @Valid Demo demo) {
     demoMapper.insert(demo);
     return ResponseResult.success();

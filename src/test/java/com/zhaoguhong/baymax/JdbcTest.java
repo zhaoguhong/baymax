@@ -5,7 +5,7 @@ import com.zhaoguhong.baymax.demo.entity.Demo;
 import com.zhaoguhong.baymax.jdbc.JdbcDao;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,19 +19,18 @@ public class JdbcTest {
 
   @Test
   public void testJdbcDao() {
-    String sql = "select * from Demo where id =?";
+    String sql = "select * from demo where id =?";
     log.info("测试jdbcDao占位符:" + jdbcDao.find(sql, 1L));
 
-    sql = "select * from Demo where id =:id";
+    sql = "select * from demo where id =:id";
     Map<String, Object> param = new HashMap<>();
     param.put("id", 1L);
     log.info("测试jdbcDao命名参数:" + jdbcDao.find(sql, param));
 
-    sql = "select * from Demo ";
-    Page page = new Page<Demo>();
+    sql = "select * from demo ";
+    Page<Map<String, Object>> page = new Page<>();
     log.info("测试分页:" + jdbcDao.find(page, sql, new HashMap<>()));
   }
 
 
 }
-
